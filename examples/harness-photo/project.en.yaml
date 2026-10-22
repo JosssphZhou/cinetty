@@ -1,0 +1,117 @@
+# Our own content for the photo-loop template (English).
+# Scores are placeholders; replace them with your own. Photos: CC0, see LICENSES.md. Coordinates are pixels of the source photo;
+# blur hides the number plates.
+template: photo-loop
+template_version: 1
+name: harness-photo-en
+fields:
+  title: HARNESS² + JEV
+  sections:
+    live: Live
+    learning: Background
+    live_tag: R U N T I M E
+    learning_tag: E V O L U T I O N
+  boxes:
+    input: Input
+    core: JEV
+    output: Output
+    fallback: Fallback
+    trajectories: Trajectories
+    propose: Propose
+    probe: Probe
+    compose: Compose
+    store: Experience Store
+  input:
+    good_quality: ◑ lifted
+    poor_quality: ◐ dark_scene
+  core:
+    frozen: weights frozen
+    read_only: read-only
+    gate: 0.6
+  output:
+    line: emit(result)
+    fallback_line: ⇄ review
+  compose:
+    adopt: adopt
+    keep: keep
+  patch_kinds:
+  - {name: prompt, icon: }
+  - {name: +lesson, icon: }
+  - {name: tool, icon: }
+  slots:
+  - {id: prompt}
+  - {id: tools}
+  - {id: lessons}
+  store:
+    initial: 2
+    entries:
+    - {icon: ⌕, cue: far_away, lesson: upscale_first}
+    - {icon: ◧, cue: half_hidden, lesson: trust_outline}
+    - {icon: ◐, cue: dark_scene, lesson: lift_shadows}
+    - {icon: ≋, cue: shaky_frame, lesson: average_frames}
+    - {icon: ⊜, cue: similar_class, lesson: check_shape}
+    - {icon: ▦, cue: busy_street, lesson: focus_center}
+  status:
+    round: round
+    confidence: conf
+    fallbacks: fallback
+    store: store
+  photos:
+  - id: taxi-mexico
+    file: ../../assets/photos/taxi-mexico.jpg
+    crop: [290, 1040, 3213, 2290]
+    blur: [[2533, 1606, 2720, 1720], [1556, 1318, 1640, 1380]]
+    focus: car
+    main_confidence: 0.91
+    low_confidences: [0.47, 0.43, 0.39]
+    hints:
+    - class: person
+      region: [931, 1203, 1503, 2276]
+      points: [[1244, 1113], [1253, 1399], [1253, 2044]]
+  - id: soho-crossing
+    file: ../../assets/photos/soho-crossing.jpg
+    crop: [1080, 1060, 2728, 1765]
+  compare:
+    photo: taxi-mexico
+    low_confidence: 0.47
+    high_confidence: 0.91
+    left_caption: v1   0.47   review
+    right_caption: v3   0.91   emit
+    headline: v1 → v3
+  rounds:
+  - photo: taxi-mexico
+    quality: low
+    trajectory: ✓✓✗✓⇄✓✗✓⇄✓
+    patches: [prompt, tool, +lesson]
+    baseline: 0.64
+    candidate_scores: [0.61, 0.62, 0.59]
+    version: [1, 1]
+    lessons: 2
+    fallbacks: 11
+    confidences: [0.64, 0.68, 0.61, 0.67, 0.52, 0.69, 0.62, 0.65, 0.49, 0.67, 0.57, 0.54, 0.48, 0.61, 0.53, 0.5, 0.55, 0.51, 0.62, 0.53, 0.47, 0.61]
+  - photo: soho-crossing
+    quality: high
+    trajectory: ✓✓✓✗✓✓⇄✓✓✓
+    patches: [prompt, +lesson, tool]
+    baseline: 0.64
+    candidate_scores: [0.69, 0.74, 0.67]
+    winner: 2
+    learned_slot: lessons
+    learned: + dark_scene → lift_shadows
+    version: [1, 2]
+    lessons: 4
+    fallbacks: 4
+    confidences: [0.78, 0.74, 0.81, 0.72, 0.77, 0.8, 0.54, 0.76, 0.73, 0.82, 0.57, 0.79, 0.52, 0.75, 0.71, 0.8, 0.55, 0.78, 0.74, 0.77]
+  - photo: taxi-mexico
+    quality: high
+    trajectory: ✓✓✓✓✗✓✓⇄✓✓
+    patches: [tool, +lesson, prompt]
+    baseline: 0.74
+    candidate_scores: [0.86, 0.78, 0.75]
+    winner: 1
+    learned_slot: tools
+    learned: + busy_street → focus_center
+    version: [2, 3]
+    lessons: 6
+    fallbacks: 2
+    confidences: [0.88, 0.85, 0.9, 0.87, 0.84, 0.89, 0.86, 0.57, 0.88, 0.91, 0.85, 0.87, 0.89, 0.84, 0.53, 0.9, 0.86, 0.88, 0.85, 0.87]

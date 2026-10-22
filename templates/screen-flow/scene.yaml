@@ -1,0 +1,32 @@
+# screen-flow: a 94 x 37 board. The layout lives in cinetty/phone.py; this file names the
+# palette and the timing, and passes the project's texts in.
+driver: events
+board: phone
+canvas: {cols: 94, rows: 37, fps: 30}
+duration: 26.0
+retention: 600        # seconds a finished task stays on its card
+ocr_seconds: 1.6      # how long the OCR box stays lit after an ocr event
+palette:
+  main: [232, 145, 107]
+  ocr: [255, 122, 168]
+  decision: [180, 140, 255]
+  action: [79, 209, 139]
+  running: [90, 176, 255]
+  vision: [242, 184, 75]
+  confirm: [0, 215, 255]
+  empty: [38, 43, 52]
+  empty_text: [64, 70, 82]
+texts:
+  title: "{{title}}"
+  legend: "{{legend}}"
+  main: "{{main}}"
+  ocr: "{{ocr}}"
+  decision: "{{decision}}"
+  vision: "{{vision}}"
+  devices: "{{devices}}"
+  device_states: "{{device_states}}"
+  confirm: "{{confirm}}"
+  log_title: "{{log_title}}"
+  log_tags: "{{log_tags}}"
+  status: "{{status}}"
+  clock_start: "{{clock_start}}"

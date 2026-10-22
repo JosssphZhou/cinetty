@@ -1,0 +1,80 @@
+# The reference demo with a neutral title. Model names are examples of what a team might run.
+# The counters (router forks, advisor tokens) and the probabilities are placeholders, not measurements; replace them with your own.
+template: pipeline
+template_version: 1
+name: agent-workflow-en
+fields:
+  title: AGENT WORKFLOW
+  legend: {main: "main: high", workers: "subagents: medium", router: "router: jev", advisor: "advisor: gpt pro/fable"}
+  participants:
+    - {name: main, role: main}
+    - {name: jev, role: router}
+    - {name: advisor, role: advisor}
+    - {name: coder, role: workers}
+    - {name: tester, role: workers}
+    - {name: docs, role: workers}
+  advisor:
+    name: GPT PRO / FABLE 5.1
+    state_idle: "advisor: on call"
+    state_active: "advisor: advising"
+    moments: [before a plan, same error twice, before done]
+    about: [reads the whole, "session, every", tool call and, every result]
+    advice_label: "last advice:"
+    calls_label: calls
+    tokens_label: tokens read
+    tokens_start: 71
+    quiet: [silent on every, routine turn]
+    rule: [never writes, code itself., the main session, applies it.]
+  main: {title: Opus 5.5 main session, subtitle: plans and decides, effort_label: effort, effort: high, note: "context: 1M"}
+  router:
+    title: JEV router
+    counter_label: forks
+    counter_start: 1184
+    questions: [which file, which tool, retry or stop]
+    start_values: [0.91, 0.47, 0.82]
+    sharp_word: sharp
+    split_word: split
+    sharp_footer: sharp → runs in code
+    split_footer: split → main
+    sharp_route: sharp → code
+    split_route: split → main
+  delegate: {label: to subagents, effort: effort medium, effort_label: effort, effort_short: med}
+  workers:
+    - {name: coder, model: Cursor Opus 5.5, task: edits and tests}
+    - {name: tester, model: Codex GPT-6 Sol, task: reads the diff}
+    - {name: docs, model: GPT-6 Sol, task: pulls the docs}
+  worker_states: {idle: idle, running: running, waiting: waiting, passed: tests pass, done: done}
+  review: {title: back to main, effort: effort high, subtitle: review + verify}
+  log_title: session log
+  clock_start: "12:00:00"
+  prompt: {path: ~/workflow $, command: agent --advisor on}
+  status:
+    effort_key: effort
+    effort_value: high/medium
+    workers_key: subagents
+    workers_value: 3/3
+    advisor_key: advisor
+    advisor_idle: on call
+    advisor_active: advising
+    router_key: jev
+    counter_unit: forks
+
+events:
+  - {t: 0.0, type: advise, until: 2.8, moment: 0, who: advisor, lines: [plan skips auth, split in 3 PRs], tokens: 178,
+     log: "before a plan: reading full session", log_end: "plan reviewed, back to main"}
+  - {t: 2.9, type: log, who: main, text: "plan ready: 3 steps → jev", route: plan}
+  - {t: 3.3, type: decision, who: jev, text: which file    → src/auth.ts, row: 0, p: 0.92, route: dispatch, card: 0, forks: 1189}
+  - {t: 3.7, type: decision, who: jev, text: which tool    → grep, row: 1, p: 0.84, route: dispatch, card: 1, forks: 1193}
+  - {t: 4.1, type: decision, who: jev, text: which file    → docs/api.md, row: 0, p: 0.89, route: dispatch, card: 2, forks: 1197}
+  - {t: 5.0, type: log, who: docs, text: found 4 doc pages, route: handback, card: 2, result: done}
+  - {t: 5.4, type: log, who: tester, text: read 19 files, route: handback, card: 1, result: done}
+  - {t: 5.7, type: decision, who: jev, text: retry or stop → stop + ask, row: 2, p: 0.48, route: escalate, forks: 1200}
+  - {t: 6.0, type: advise, until: 8.6, moment: 1, who: advisor, lines: ["wrong fixture,", not the code], tokens: 291, hold_card: 0,
+     log: "reviewing coder run: reading full session", log_end: advice sent to coder}
+  - {t: 8.8, type: log, who: main, text: "apply advice, retry coder", route: plan}
+  - {t: 9.2, type: decision, who: jev, text: which tool    → run tests, row: 1, p: 0.81, route: dispatch, card: 0, forks: 1206}
+  - {t: 10.4, type: log, who: coder, text: tests 12/12 passed, route: handback, card: 0, result: passed}
+  - {t: 11.0, type: advise, until: 13.6, moment: 2, who: advisor, lines: [tests cover it, ship it], tokens: 404,
+     log: "before done: reading full session", log_end: "verified, back to main"}
+  - {t: 13.6, type: review, until: 15.0}
+  - {t: 14.0, type: log, who: main, text: "review + verify: merged"}

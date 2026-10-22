@@ -1,0 +1,95 @@
+# Our own content for the loop-portrait template (Chinese).
+# The numbers are placeholders, not measurements; replace them with your own.
+template: loop-portrait
+template_version: 1
+name: harness-portrait-zh
+fields:
+  title: HARNESS² + JEV
+  subtitle: HARNESS² 后台异步演化 JEV 运行时封装层
+  sections:
+    live: 前台在线执行链路
+    learning: HARNESS² 后台异步学习闭环
+  divider: 后台异步学习：前台零延迟
+  live:
+    screen_title: Screen
+    screen_caption: 实时屏幕状态
+    buttons: [设置, 搜索, 打开]
+    core_title: JEV
+    core_subtitle: 屏幕决策引擎
+    action_label: 动作类型
+    actions: [tap, type, scroll]
+    target_label: 目标边界框
+    target: 96×36
+    confidence_label: 决策置信度
+    go_text: 置信达标：直通执行
+    fallback_text: 低于阈值：降级视觉兜底
+    note_1: 模型权重冻结，
+    note_2: 仅迭代封装层
+    execute_title: Execute
+    execute_line_1: ESP32
+    execute_line_2: 蓝牙鼠标点按
+    fallback_title: Fallback
+    fallback_line: 视觉降级兜底
+    next_frame: 下一帧
+    reads_note: 在线推理只读已采纳经验
+    gate: 0.6
+  learning:
+    trajectories_title: Trajectories 任务执行轨迹
+    failed: 执行失败
+    fell_back: 触发兜底
+    propose_title: Propose 候选补丁生成
+    probe_title: Probe 离线回放评估
+    probe_note: 冻结样本回放，隔绝实机点按
+    compose_title: Compose 最优补丁合成
+    rule: 仅超越当前基线方予合入
+    adopted: 合入新版本 {v}
+    kept: 维持现有基线 {v}
+  propose:
+    columns: [触发线索, 策略经验, 轨迹佐证]
+  store:
+    title: Experience Store
+    initial: 2
+    subtitle: 版本化经验库
+    version: 版本 v{v}
+    version_change: 版本 v{a} → v{b}
+    entries:
+    - 对话框弹出 → 先关掉
+    - 页面空白 → 刷新一次
+    - 目标在屏外 → 向上滑动
+    - 输入框未激活 → 先点一下
+    - 提示条遮挡 → 先划走
+    - 正在转圈 → 等一秒
+  status:
+    round: 迭代第 {n} 轮
+    confidence: 置信度
+    fallbacks: 兜底触发数
+    store: 经验库
+  parts: [提示词模板, 工具引导规范, 经验知识条目]
+  rounds:
+  - trajectory: ✓✓✗✓⇄✓✗✓⇄✓✓✗
+    patches: [[提示词模板], [工具引导规范], [经验知识条目]]
+    baseline: 0.64
+    candidate_scores: [0.61, 0.62, 0.59]
+    winner: null
+    version: [1, 1]
+    lessons: 2
+    fallbacks: 7
+    confidences: [0.71, 0.67, 0.74, 0.55, 0.69, 0.72, 0.52, 0.64, 0.73, 0.57, 0.62, 0.59, 0.75, 0.54, 0.69, 0.72, 0.53, 0.51, 0.74, 0.65]
+  - trajectory: ✓✓✓✗✓✓⇄✓✓✓✗✓
+    patches: [[经验知识条目], [工具引导规范], [提示词模板]]
+    baseline: 0.64
+    candidate_scores: [0.67, 0.75, 0.65]
+    winner: 2
+    version: [1, 2]
+    lessons: 4
+    fallbacks: 4
+    confidences: [0.78, 0.76, 0.8, 0.74, 0.57, 0.77, 0.79, 0.75, 0.81, 0.73, 0.53, 0.78, 0.76, 0.8, 0.55, 0.77, 0.71, 0.79, 0.54, 0.78]
+  - trajectory: ✓✓✓✓✓✓⇄✓✓✓✓✓
+    patches: [[提示词模板], [经验知识条目], [工具引导规范]]
+    baseline: 0.75
+    candidate_scores: [0.87, 0.8, 0.78]
+    winner: 1
+    version: [2, 3]
+    lessons: 6
+    fallbacks: 2
+    confidences: [0.86, 0.88, 0.85, 0.87, 0.89, 0.84, 0.86, 0.57, 0.88, 0.87, 0.85, 0.89, 0.86, 0.84, 0.87, 0.88, 0.85, 0.54, 0.89, 0.87]

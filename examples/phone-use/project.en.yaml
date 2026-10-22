@@ -1,0 +1,62 @@
+# Phone use, English. The app and the dishes are made up.
+template: screen-flow
+template_version: 1
+name: phone-use-en
+fields:
+  title: GROKI PHONE USE WORKFLOW
+  legend: {main: Groki, ocr: OCR, decision: Decision Model, action: Action}
+  main: {name: Groki, detail: ESP32 as a mouse}
+  ocr: {name: OCR, detail: On-device, busy: Reading, idle: Ready, unit: texts}
+  decision:
+    title: "DECISION MODEL: NEXT ACTION"
+    waiting: Waiting for a screen
+    act: Tap
+    handoff: Hand off
+    candidates_title: Candidates      confidence
+    picked: Picked
+    no_text: Vision
+  vision: {name: Vision Fallback, detail: Pixels only, busy: Searching, idle: Ready}
+  devices:
+    - {id: iphone, name: iPhone, detail: AirPlay mirror, log_name: AirPlay}
+    - {id: esp32, name: ESP32, detail: Bluetooth HID, log_name: ESP32}
+  device_states: {running: Running, done: Done, idle: Ready}
+  confirm: Result confirmed
+  log_title: Execution log
+  log_tags: {ocr: OCR, decision: DECIDE, action: ACT, done: DONE, vision: VISION}
+  status:
+    - {key: decision, value: 0.52 s}
+    - {key: ocr, value: 243.7 ms}
+    - {key: esp32, value: bluetooth}
+  clock_start: "14:00:00"
+events:
+  - {t: 1.0, type: dispatch, to: iphone, text: Capture screen}
+  - {t: 2.0, type: done, text: Capture screen}
+  - {t: 3.0, type: ocr, boxes: 22, ms: 270.1}
+  - t: 5.4
+    type: decision
+    question: Pick the tap target
+    answer: "#3 QuickEats"
+    confidence: 0.5
+    outcome: act
+    candidates:
+      - {text: "#3 QuickEats", confidence: 0.5, pick: true}
+      - {text: "#4 Delivery", confidence: 0.5}
+      - {text: "#7 Quick", confidence: 1.0}
+  - {t: 7.0, type: dispatch, to: esp32, text: "Tap #3 QuickEats"}
+  - {t: 9.0, type: done, text: "Tap #3 QuickEats"}
+  - {t: 10.4, type: dispatch, to: iphone, text: Capture screen}
+  - {t: 11.4, type: done, text: Capture screen}
+  - {t: 12.4, type: ocr, boxes: 16, ms: 283.5}
+  - t: 14.8
+    type: decision
+    question: Option chosen
+    answer: No text → Vision Fallback
+    confidence: 0.58
+    outcome: handoff
+    candidates:
+      - {text: "Add to cart: no text found", confidence: null, pick: true}
+      - {text: "#14 Choose option", confidence: 0.5}
+      - {text: "#5 Options", confidence: 0.5}
+  - {t: 16.8, type: dispatch, to: vision, text: Button found}
+  - {t: 19.0, type: dispatch, to: esp32, text: Tap Add to cart}
+  - {t: 21.0, type: done, text: Tap Add to cart, final: true}

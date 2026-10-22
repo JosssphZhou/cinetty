@@ -1,0 +1,170 @@
+# A fictional keyboard-to-Bluetooth board. Same layout and timeline as the reference video;
+# part names and nets are made up for this example.
+template: circuit-flow
+template_version: 1
+name: circuit-flow-zh
+fields:
+  title: RETRO KEYBOARD + BLE
+  modules:
+    A:
+      name: CHARGER + SW1
+      role: 锂电充电与总开关
+      details:
+      - J2 BAT+ BAT-
+      - CHG_OUT
+    B:
+      name: BLE MCU MODULE
+      role: 蓝牙主控核心板
+      details:
+      - P1 VBAT_ADC  P2 BOOST_EN
+      - P3 VBAT_EN   P4 PWR_5V
+      - P5 TP_DATA   P6 TP_CLK
+      - P7 P8 P9 P10  LED PWM
+    C:
+      name: KEYBOARD FPC 40P
+      role: 键盘排线接口
+      details:
+      - 40-pin 0.5 mm FPC
+      - J1
+    D:
+      name: CHARGE PUMP + RESET
+      role: 小红点升压与复位
+      details:
+      - U3 5 V charge pump
+      - U4 reset timer
+    E:
+      name: N-FET x2
+      role: 小红点电平转换
+      details:
+      - Q1 TP_CLK
+      - Q2 TP_DATA
+    F:
+      name: P-FET + N-FET
+      role: 电池电压检测
+      details:
+      - Q3 P-FET
+      - Q4 N-FET
+    G:
+      name: LED x4
+      role: 键盘状态指示灯
+      details:
+      - CAPS  PWR
+      - MUTE  MIC
+    H:
+      name: R1 C1 + JP1 JP2 + J3
+      role: 电源键、Fn 跳线与调试口
+      details:
+      - FN_KEY-SNS4 FN_RTN-DRV9
+      - SWD  仅烧录时用
+  nets:
+    a_d: VSYS
+    a_f: VSYS
+    a_b: VIN_CORE
+    b_d: BOOST_EN
+    d_e: +5V_TP
+    b_e: TP_CLK  TP_DATA
+    d_c: +5V_TP  TP_RESET
+    e_c:
+    - TP_CLK_5V
+    - TP_DATA_5V
+    f_b: VBAT_ADC
+    b_f: VBAT_EN
+    b_c: DRV0-15
+    c_b: SNS0-7
+    b_g: LED_*_PWM
+    g_c: LED_*_K
+    h_c:
+    - PWR_SW
+    - FN_KEY
+    - FN_RTN
+    h_b:
+    - PWR_5V
+    - SNS4
+    - DRV9
+  legend:
+    power: 电源
+    core: 主控
+    keys: 键盘
+    level: 电平转换
+    io: 按键与调试
+  log_title: 执行日志
+  clock_start: '12:00:00'
+  prompt:
+    path: ~/kbd $
+    command: kbd "开机，按下大写锁定与 Fn"
+  status:
+  - key: vbat
+    initial: --
+  - key: 3v3
+    initial: --
+  - key: 5v
+    initial: --
+  - key: reset
+    initial: hold
+  - key: ble
+    initial: 'off'
+  - key: scan
+    initial: idle
+  - key: keys
+    initial: --
+events:
+  - {t: 3.0, type: light, box: A, until: 7.0}
+  - {t: 3.2, type: log, color: power, tag: 供电, text: SW1 接通，CHG_OUT 经开关接入 VSYS}
+  - {t: 3.4, type: pulse, wire: a_d, dur: 1.0}
+  - {t: 3.4, type: pulse, wire: a_f, dur: 1.0}
+  - {t: 4.4, type: light, box: F, until: 5.4}
+  - {t: 4.6, type: pulse, wire: a_b, dur: 1.4}
+  - {t: 4.6, type: log, color: power, tag: 供电, text: VSYS 经二极管送出 VIN_CORE，供电给蓝牙主控}
+  - {t: 6.0, type: light, box: B, until: 60.0}
+  - {t: 6.2, type: status, key: 3v3, value: 3.3 V}
+  - {t: 7.4, type: light, box: C, until: 9.4}
+  - {t: 7.6, type: light, box: H, until: 11.0}
+  - {t: 7.6, type: pulse, wire: h_c, dur: 1.3, dir: -1, label: h_c.0}
+  - {t: 7.6, type: log, color: io, tag: 开机, text: 按下电源键，PWR_SW 经 R1 接至 PWR_5V}
+  - {t: 9.0, type: pulse, wire: h_b, dur: 1.2, label: h_b.0}
+  - {t: 10.2, type: log, color: core, tag: 启动, text: P4 受 PWR_5V 唤醒，主控启动，蓝牙已连接}
+  - {t: 10.6, type: status, key: ble, value: connected}
+  - {t: 11.4, type: pulse, wire: b_d, dur: 1.0}
+  - {t: 11.4, type: log, color: power, tag: 升压, text: P2 拉高 BOOST_EN，电荷泵输出 +5V_TP}
+  - {t: 12.4, type: light, box: D, until: 15.9}
+  - {t: 12.6, type: pulse, wire: d_e, dur: 1.0}
+  - {t: 12.6, type: pulse, wire: d_c, dur: 1.4}
+  - {t: 13.0, type: status, key: 5v, value: 5.0 V}
+  - {t: 14.4, type: pulse, wire: d_c, dur: 1.4}
+  - {t: 14.4, type: log, color: power, tag: 复位, text: 复位芯片延时结束，释放 TP_RESET}
+  - {t: 15.8, type: light, box: C, until: 60.0}
+  - {t: 15.8, type: status, key: reset, value: released}
+  - {t: 17.4, type: light, box: E, until: 22.4}
+  - {t: 17.4, type: pulse, wire: b_e, dur: 1.2}
+  - {t: 17.4, type: log, color: level, tag: 小红点, text: TP_CLK 与 TP_DATA 经两颗 N-FET 完成 3.3 V 与 5 V 电平转换}
+  - {t: 18.4, type: pulse, wire: e_c, dur: 1.0}
+  - {t: 20.0, type: pulse, wire: e_c, dur: 1.0, dir: -1}
+  - {t: 21.0, type: pulse, wire: b_e, dur: 1.2, dir: -1}
+  - {t: 23.0, type: pulse, wire: b_c, dur: 0.9}
+  - {t: 23.0, type: log, color: keys, tag: 扫描, text: DRV0-15 逐路扫出，SNS0-7 读回}
+  - {t: 23.0, type: status, key: scan, value: DRV x SNS}
+  - {t: 23.9, type: pulse, wire: b_c, dur: 0.9}
+  - {t: 24.8, type: pulse, wire: b_c, dur: 0.9}
+  - {t: 25.4, type: pulse, wire: c_b, dur: 0.9}
+  - {t: 25.8, type: log, color: keys, tag: 按键, text: 检测到按键：大写锁定}
+  - {t: 25.8, type: status, key: keys, value: caps}
+  - {t: 27.4, type: pulse, wire: b_g, dur: 1.0}
+  - {t: 27.4, type: log, color: keys, tag: 点灯, text: P7 输出 LED_CAPS_PWM，CAPS 灯点亮}
+  - {t: 27.6, type: light, box: G, until: 60.0}
+  - {t: 28.4, type: pulse, wire: g_c, dur: 1.4}
+  - {t: 28.6, type: highlight, box: G, text: CAPS, color: keys}
+  - {t: 31.0, type: light, box: H, until: 36.0}
+  - {t: 31.0, type: pulse, wire: h_b, dur: 1.0, dir: -1, label: h_b.2}
+  - {t: 31.0, type: log, color: io, tag: Fn 键, text: 按下 Fn：DRV9 经 JP2 至 FN_RTN，FN_KEY 经 JP1 由 SNS4 读回}
+  - {t: 31.9, type: light, box: C, until: 34.4}
+  - {t: 32.0, type: pulse, wire: h_c, dur: 1.0, label: h_c.2}
+  - {t: 33.4, type: pulse, wire: h_c, dur: 1.0, dir: -1, label: h_c.1}
+  - {t: 34.4, type: pulse, wire: h_b, dur: 1.2, label: h_b.1}
+  - {t: 34.6, type: status, key: keys, value: caps fn}
+  - {t: 37.0, type: light, box: F, until: 45.0}
+  - {t: 37.0, type: pulse, wire: b_f, dur: 1.0}
+  - {t: 37.0, type: log, color: power, tag: 电压, text: VBAT_EN 拉高，等待 3 ms 后 ADC 采样 VBAT_ADC}
+  - {t: 39.0, type: pulse, wire: f_b, dur: 1.0}
+  - {t: 39.6, type: log, color: power, tag: 电压, text: VBAT_ADC 采样 1.89 V，换算 VBAT 为 4.20 V}
+  - {t: 40.0, type: status, key: vbat, value: 4.20 V}
+  - {t: 40.0, type: status, key: scan, value: idle}

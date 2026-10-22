@@ -1,0 +1,28 @@
+# pipeline: a 90 x 46 board. The layout lives in cinetty/workflow.py; this file
+# names the palette and the timing, and passes the project's texts in.
+driver: events
+board: workflow
+canvas: {cols: 90, rows: 46, fps: 30}
+duration: 15.0
+cycle: 15.0
+palette:
+  main: [240, 150, 110]
+  workers: [125, 170, 240]
+  router: [125, 225, 150]
+  advisor: [180, 160, 240]
+  highlight: [62, 54, 92]
+texts:
+  title: "{{title}}"
+  legend: "{{legend}}"
+  participants: "{{participants}}"
+  advisor: "{{advisor}}"
+  main: "{{main}}"
+  router: "{{router}}"
+  delegate: "{{delegate}}"
+  workers: "{{workers}}"
+  worker_states: "{{worker_states}}"
+  review: "{{review}}"
+  log_title: "{{log_title}}"
+  clock_start: "{{clock_start}}"
+  prompt: "{{prompt}}"
+  status: "{{status}}"

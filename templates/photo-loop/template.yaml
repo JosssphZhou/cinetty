@@ -1,0 +1,155 @@
+id: photo-loop
+version: 1
+title: Vision model on real photos, improved by a learning loop (portrait)
+purpose: A vision model reads real photos with live box effects; a background loop improves it over two or three rounds.
+kind: video
+terminal: 66 x 48 cells, 60 fps, Kitty graphics for the photos
+duration: about 36 s, 28 s with two rounds
+preview: {still: preview/still.png, clip: preview/clip.mp4}
+example: {zh: examples/harness-photo/project.zh.yaml, en: examples/harness-photo/project.en.yaml}
+notes: >
+  Top half: the photo of the current round with detection boxes and outlines
+  (made by RT-DETR and SAM 2.1 from your photos), the model's class, box and
+  confidence, and the output or fallback path. Bottom half: trajectories,
+  candidate patches, offline replay, the verdict and the lesson store. The
+  video ends with the same photo before and after, side by side.
+  Photos are prepared once with `python -m cinetty.photos project.yaml`
+  (make play does it for you). Hide faces and number plates with `blur`.
+
+fields:
+  title: {type: text, max_cells: 21, desc: "Big rainbow title. Letters are drawn three cells apart."}
+  sections:
+    type: record
+    fields:
+      live: {type: text, max_cells: 60, desc: Title of the top half.}
+      learning: {type: text, max_cells: 34, desc: "Title of the bottom half. It shares its row with learning_tag, so it is shorter than live."}
+      live_tag: {type: text, max_cells: 17, desc: "Rainbow label at the bottom of the top half (spaces between letters look good: R U N T I M E)."}
+      learning_tag: {type: text, max_cells: 17, desc: Rainbow label at the top of the bottom half.}
+  boxes:
+    type: record
+    desc: Box names (an icon is added in front).
+    fields:
+      input: {type: text, max_cells: 52}
+      core: {type: text, max_cells: 34, desc: Name of the vision model.}
+      output: {type: text, max_cells: 10}
+      fallback: {type: text, max_cells: 10}
+      trajectories: {type: text, max_cells: 12}
+      propose: {type: text, max_cells: 12}
+      probe: {type: text, max_cells: 6}
+      compose: {type: text, max_cells: 8}
+      store: {type: text, max_cells: 17}
+  input:
+    type: record
+    fields:
+      good_quality: {type: text, max_cells: 20, desc: Strip label when the photo is clear.}
+      poor_quality: {type: text, max_cells: 20, desc: Strip label when the photo is degraded.}
+  core:
+    type: record
+    fields:
+      frozen: {type: text, max_cells: 30, desc: Note that the model weights do not change.}
+      read_only: {type: text, max_cells: 12, desc: Label on the wire from the store to the model.}
+      gate: {type: number, range: [0, 1], desc: "Confidence threshold of the live loop: a step at or above it goes to Output, below it to Fallback. Shown in the JEV box."}
+  output:
+    type: record
+    fields:
+      line: {type: text, max_cells: 12, desc: What the output box shows (a check mark is added).}
+      fallback_line: {type: text, max_cells: 13}
+  compose:
+    type: record
+    fields:
+      adopt: {type: text, max_cells: 7, desc: "Verdict word when a candidate wins (shown as: ✓ adopt v2)."}
+      keep: {type: text, max_cells: 7, desc: "Verdict word when none wins (shown as: = keep v1)."}
+  patch_kinds:
+    type: list
+    min_items: 1
+    max_items: 6
+    desc: Kinds of patch a candidate can be. rounds[].patches names them.
+    of:
+      type: record
+      fields:
+        name: {type: text, max_cells: 10}
+        icon: {type: text, max_cells: 2, desc: One symbol or Nerd Font icon.}
+  slots:
+    type: list
+    items: 3
+    desc: The three parts of the model's wrapper that a winning patch upgrades.
+    of: {type: record, fields: {id: {type: text, max_cells: 7}}}
+  store:
+    type: record
+    fields:
+      initial: {type: integer, range: [0, 6], count_of: store.entries, desc: "Lessons in the store before round 1, shown from the start; at most the number of store.entries."}
+      entries:
+        type: list
+        min_items: 1
+        max_items: 6
+        desc: Lessons in the store, in the order they are adopted. The first store.initial entries are there from the start; four are shown, then +N.
+        of:
+          type: record
+          fields:
+            icon: {type: text, max_cells: 1}
+            cue: {type: text, max_cells: 19, desc: When the lesson applies.}
+            lesson: {type: text, max_cells: 19, desc: What to do then.}
+  status:
+    type: record
+    fields:
+      round: {type: text, max_cells: 10}
+      confidence: {type: text, max_cells: 10}
+      fallbacks: {type: text, max_cells: 10}
+      store: {type: text, max_cells: 10}
+  photos:
+    type: list
+    min_items: 1
+    max_items: 3
+    desc: Photos the model looks at. Only use photos you may publish; blur faces and plates.
+    of:
+      type: record
+      fields:
+        id: {type: text, max_cells: 24, desc: "Short name used by rounds[].photo."}
+        file: {type: file, formats: [jpg, jpeg, png], desc: Path relative to this project file.}
+        crop: {type: list, items: 4, of: {type: integer, range: [0, 100000]}, desc: "Area to show, [left, top, right, bottom] in source pixels. Use a 2.34:1 shape (for example 3264 x 1396)."}
+        blur: {type: list, required: false, of: {type: list, items: 4, of: {type: integer, range: [0, 100000]}}, desc: "Rectangles to blur and darken (faces, number plates), in source pixels."}
+        focus: {type: text, required: false, max_cells: 20, desc: "Class of the main object (for example car). Default: the most confident detection."}
+        main_confidence: {type: number, range: [0, 1], required: false, desc: Confidence shown on the main object in the confident version.}
+        low_confidences: {type: list, required: false, min_items: 1, max_items: 3, of: {type: number, range: [0, 1]}, desc: "Confidences shown in the unsure version. Leave out to draw its boxes without numbers."}
+        threshold: {type: number, range: [0.05, 0.99], required: false, desc: "Detection threshold (default 0.5)."}
+        hints:
+          type: list
+          required: false
+          desc: Extra points that help the outline of one object, in source pixels.
+          of:
+            type: record
+            fields:
+              class: {type: text, max_cells: 20}
+              region: {type: list, items: 4, of: {type: number}}
+              points: {type: list, min_items: 1, max_items: 8, of: {type: list, items: 2, of: {type: number}}}
+  compare:
+    type: record
+    desc: The closing split screen of one photo, unsure on the left and confident on the right.
+    fields:
+      photo: {type: ref, to: "photos[].id"}
+      low_confidence: {type: number, range: [0, 1]}
+      high_confidence: {type: number, range: [0, 1]}
+      left_caption: {type: text, max_cells: 30}
+      right_caption: {type: text, max_cells: 30}
+      headline: {type: text, max_cells: 26, split_at: "→", desc: "Before and after, joined by an arrow (for example v1 → v3); the divider runs through the arrow."}
+  rounds:
+    type: list
+    min_items: 2
+    max_items: 3
+    desc: Two or three rounds; give only the rounds you have results for.
+    of:
+      type: record
+      fields:
+        photo: {type: ref, to: "photos[].id"}
+        quality: {type: enum, values: [low, high], desc: "low shows the darker photo, orange unsure boxes and fallbacks."}
+        trajectory: {type: text, max_cells: 10, allowed_chars: "✓✗⇄", desc: "One symbol per step: ✓ ok, ✗ wrong, ⇄ reviewed."}
+        patches: {type: list, items: 3, of: {type: ref, to: "patch_kinds[].name"}, desc: "Kind of each of the three candidates."}
+        baseline: {type: number, range: [0, 1]}
+        candidate_scores: {type: list, items: 3, of: {type: number, range: [0, 1]}}
+        winner: {type: integer, range: [1, 3], required: false, needs: [learned_slot, learned], desc: Adopted candidate (1-based); leave out when none wins.}
+        learned_slot: {type: ref, to: "slots[].id", required: false, desc: Slot the winner upgrades (needed with winner).}
+        learned: {type: text, max_cells: 34, required: false, desc: One line about what was learned (needed with winner).}
+        version: {type: list, items: 2, of: {type: integer, range: [1, 99]}}
+        lessons: {type: integer, range: [0, 6], count_of: store.entries, desc: "Lessons in the store after this round, at most the number of store.entries."}
+        fallbacks: {type: integer, range: [0, 99], count_below: {list: confidences, gate: core.gate}, desc: "How many of the confidences are below core.gate; the status line shows it out of the number of confidences."}
+        confidences: {type: list, min_items: 1, max_items: 99, of: {type: number, range: [0, 1]}, desc: "Confidence of every live step of this round, in order; the status line and the JEV box show them one by one, the first ten match trajectory."}

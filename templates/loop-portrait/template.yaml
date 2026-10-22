@@ -1,0 +1,110 @@
+id: loop-portrait
+version: 1
+title: Live loop and learning loop (portrait)
+purpose: A fast live decision loop on top and a slow background learning loop below that improves it.
+kind: video
+terminal: 66 x 48 cells, 60 fps
+duration: about 37 s
+preview: {still: preview/still.png, clip: preview/clip.mp4}
+example: {zh: examples/harness-portrait/project.zh.yaml, en: examples/harness-portrait/project.en.yaml}
+notes: >
+  Top half: every fraction of a second the live model looks at the screen, picks
+  an action with a confidence, and either executes it or falls back. Bottom half,
+  three rounds: trajectories, candidate patches, offline replay against the
+  baseline, adopt only if better, and a versioned store the live loop reads.
+  The live steps show the confidences each round lists, one per step.
+
+fields:
+  title: {type: text, max_cells: 21, desc: "Big rainbow title. Letters are drawn three cells apart."}
+  subtitle: {type: text, max_cells: 64, desc: One line under the title.}
+  sections:
+    type: record
+    fields:
+      live: {type: text, max_cells: 60, desc: Title of the top half (the live loop).}
+      learning: {type: text, max_cells: 60, desc: Title of the bottom half (the learning loop).}
+  divider: {type: text, max_cells: 58, desc: Text on the rule between the halves.}
+  live:
+    type: record
+    fields:
+      screen_title: {type: text, max_cells: 8, desc: Title of the small screen box.}
+      screen_caption: {type: text, max_cells: 12, desc: Caption under the buttons.}
+      buttons: {type: list, items: 3, of: {type: text, max_cells: 8}, desc: Three on-screen buttons; one lights per step.}
+      core_title: {type: text, max_cells: 21, desc: Name of the decision model.}
+      core_subtitle: {type: text, max_cells: 25}
+      action_label: {type: text, max_cells: 17, desc: Label before the action the model picks.}
+      actions: {type: list, items: 3, of: {type: text, max_cells: 6}, desc: "The three actions the model picks from, one per button, in the order of buttons (for example tap, type, scroll)."}
+      target_label: {type: text, max_cells: 17, desc: Label before the target value.}
+      target: {type: text, max_cells: 6, desc: "Value after target_label, for example the size of the box it acts on (96×36)."}
+      confidence_label: {type: text, max_cells: 10, desc: Label before the confidence bar.}
+      go_text: {type: text, max_cells: 25, desc: Shown when confidence is above the threshold.}
+      fallback_text: {type: text, max_cells: 25, desc: Shown when it falls back.}
+      note_1: {type: text, max_cells: 25}
+      note_2: {type: text, max_cells: 25}
+      execute_title: {type: text, max_cells: 10}
+      execute_line_1: {type: text, max_cells: 12}
+      execute_line_2: {type: text, max_cells: 12}
+      fallback_title: {type: text, max_cells: 9}
+      fallback_line: {type: text, max_cells: 12}
+      next_frame: {type: text, max_cells: 20, desc: Label on the wire back to the screen.}
+      reads_note: {type: text, max_cells: 28, desc: Note under the core (the live loop only reads adopted lessons).}
+      gate: {type: number, range: [0, 1], desc: "Confidence threshold of the live loop: a step at or above it executes, below it falls back."}
+  learning:
+    type: record
+    fields:
+      trajectories_title: {type: text, max_cells: 25}
+      failed: {type: text, max_cells: 10, desc: "Legend for ✗."}
+      fell_back: {type: text, max_cells: 10, desc: "Legend for ⇄."}
+      propose_title: {type: text, max_cells: 25}
+      probe_title: {type: text, max_cells: 25}
+      probe_note: {type: text, max_cells: 29}
+      compose_title: {type: text, max_cells: 24}
+      rule: {type: text, max_cells: 28, desc: The adoption rule.}
+      adopted: {type: text, max_cells: 24, placeholders: [v], measure: {v: v9}, desc: "Verdict when a candidate wins; {v} is the new version."}
+      kept: {type: text, max_cells: 26, placeholders: [v], measure: {v: v9}, desc: "Verdict when none wins; {v} is the kept version."}
+  propose:
+    type: record
+    fields:
+      columns: {type: list, items: 3, of: {type: text, max_cells: 8}, desc: "Column names of a lesson (for example cue, lesson, evidence)."}
+  store:
+    type: record
+    fields:
+      title: {type: text, max_cells: 24}
+      initial: {type: integer, range: [0, 6], count_of: store.entries, desc: Lessons in the store before round 1 (shown from the start).}
+      subtitle: {type: text, max_cells: 26, allow_empty: true}
+      version: {type: text, max_cells: 17, placeholders: [v], measure: {v: 9}, allow_empty: true, desc: "Next to the badge; {v} is the version number."}
+      version_change: {type: text, max_cells: 17, placeholders: [a, b], measure: {a: 9, b: 9}, desc: "Shown while a new version lands."}
+      entries:
+        type: list
+        min_items: 1
+        max_items: 6
+        of: {type: text, max_cells: 26}
+        desc: Lessons in the store, in the order they are adopted. rounds[].lessons counts how many are adopted.
+  status:
+    type: record
+    desc: Bottom status line.
+    fields:
+      round: {type: text, max_cells: 14, placeholders: [n], measure: {n: 3}, desc: "{n} is the round number."}
+      confidence: {type: text, max_cells: 16}
+      fallbacks: {type: text, max_cells: 14}
+      store: {type: text, max_cells: 10}
+  parts: {type: list, min_items: 1, max_items: 6, of: {type: text, max_cells: 15}, desc: Parts a patch can change.}
+  rounds:
+    type: list
+    items: 3
+    desc: Three rounds, each faster than the last.
+    of:
+      type: record
+      fields:
+        trajectory: {type: text, max_cells: 14, allowed_chars: "✓✗⇄", desc: "One symbol per step: ✓ ok, ✗ failed, ⇄ fell back."}
+        patches:
+          type: list
+          items: 3
+          of: {type: list, min_items: 1, max_items: 2, of: {type: ref, to: parts}}
+          desc: Three candidate patches, each one or two parts.
+        baseline: {type: number, range: [0, 1], desc: Score of the current version.}
+        candidate_scores: {type: list, items: 3, of: {type: number, range: [0, 1]}}
+        winner: {type: integer, range: [1, 3], required: false, desc: Which candidate is adopted (1-based); leave out when none beats the baseline.}
+        version: {type: list, items: 2, of: {type: integer, range: [1, 99]}, desc: "Version before and after this round, for example [1, 2]."}
+        lessons: {type: integer, range: [0, 6], count_of: store.entries, desc: "Lessons in the store after this round, at most the number of store.entries."}
+        confidences: {type: list, min_items: 1, max_items: 99, of: {type: number, range: [0, 1]}, desc: "Confidence of every live step of this round, in order; the core box and the status line show them one by one."}
+        fallbacks: {type: integer, range: [0, 99], count_below: {list: confidences, gate: live.gate}, desc: "How many of the confidences are below live.gate; the status line shows it out of the number of confidences."}

@@ -1,0 +1,74 @@
+# Our own content for the loop-landscape template (English).
+# The numbers are placeholders, not measurements; replace them with your own.
+template: loop-landscape
+template_version: 1
+name: harness-landscape-en
+fields:
+  title: HARNESS² + JEV
+  frame_title: HARNESS² improving loop after loop
+  boxes: {task: TASK, executor: OpenCode fixed executor, propose: Propose which parts, probe: Probe race, compose: Compose
+      keep or drop, core: JEV decision core, harness: Improvement Harness kept, filter: Filter worth keeping, experience: Experience}
+  executor: {subtitle: 'Same model, only the outer layer changes', trial: H1 H2 H3 racing, running: H* running for real, done: H*
+      finished}
+  probe_question: 'JEV scores: did it work'
+  compose_summary: Keep {k}, drop {d}
+  core:
+    tagline: calibrated probabilities, not prose
+    ports: [Propose, Probe, Compose, Filter]
+  lessons_label: lessons
+  next_label: to next round
+  keep_at: 0.6
+  status: {round: round, conf: conf, score: score, lessons: lessons, speed: speed}
+  parts: [system prompt, guardrails, memory, tool guidance, subagents, skills, scripts, plugins]
+  rounds:
+  - task: Fix login page race bug
+    part_scores: [0.78, 0.27, 0.21, 0.61, 0.14, 0.73, 0.09, 0.18]
+    candidates:
+    - [system prompt, skills]
+    - [tool guidance, skills]
+    - [tool guidance]
+    candidate_scores: [0.54, 0.43, 0.61]
+    failing_candidate: 2
+    kept:
+    - {part: system prompt, score: 0.87, delta: 0.11}
+    - {part: tool guidance, score: 0.74, delta: 0.08}
+    - {part: skills, score: 0.42, delta: -0.04}
+    - {part: guardrails, score: 0.19, delta: -0.06}
+    filter_scores: [0.84, 0.75, 0.36, 0.17]
+    learned: [system prompt, tool guidance]
+    lessons: [0, 2]
+    speed: 1.0
+  - task: Add order service tests
+    part_scores: [0.32, 0.25, 0.82, 0.19, 0.13, 0.67, 0.16, 0.1]
+    candidates:
+    - [memory, skills]
+    - [memory]
+    - [skills, system prompt]
+    candidate_scores: [0.67, 0.73, 0.57]
+    failing_candidate: 3
+    kept:
+    - {part: memory, score: 0.88, delta: 0.13}
+    - {part: skills, score: 0.82, delta: 0.09}
+    - {part: system prompt, score: 0.44, delta: -0.03}
+    - {part: tool guidance, score: 0.16, delta: -0.05}
+    filter_scores: [0.86, 0.78, 0.37, 0.15]
+    learned: [memory, skills]
+    lessons: [2, 5]
+    speed: 1.3
+  - task: Move payments to new SDK
+    part_scores: [0.17, 0.71, 0.78, 0.15, 0.1, 0.3, 0.65, 0.12]
+    candidates:
+    - [guardrails, memory]
+    - [memory, scripts]
+    - [guardrails, scripts]
+    candidate_scores: [0.8, 0.87, 0.75]
+    failing_candidate: 1
+    kept:
+    - {part: memory, score: 0.92, delta: 0.14}
+    - {part: guardrails, score: 0.87, delta: 0.1}
+    - {part: scripts, score: 0.39, delta: -0.05}
+    - {part: plugins, score: 0.12, delta: -0.06}
+    filter_scores: [0.91, 0.84, 0.33, 0.11]
+    learned: [guardrails, memory]
+    lessons: [5, 9]
+    speed: 1.8

@@ -1,0 +1,11 @@
+.venv/
+models/
+build/
+out/
+__pycache__/
+*.pyc
+.DS_Store
+# local working notes, never published
+交回.md
+证据/
+.setup-cache/

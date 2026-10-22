@@ -1,0 +1,95 @@
+# Our own content for the loop-portrait template (English).
+# The numbers are placeholders, not measurements; replace them with your own.
+template: loop-portrait
+template_version: 1
+name: harness-portrait-en
+fields:
+  title: HARNESS² + JEV
+  subtitle: HARNESS² Async Evolution of JEV Runtime Harness
+  sections:
+    live: Live Execution Loop
+    learning: HARNESS² Background Learning Loop
+  divider: 'Async Learning: Zero Latency'
+  live:
+    screen_title: Screen
+    screen_caption: Frame
+    buttons: [Settings, Search, Open]
+    core_title: JEV
+    core_subtitle: Screen Decision Engine
+    action_label: Action
+    actions: [tap, type, scroll]
+    target_label: Target BBox
+    target: 96×36
+    confidence_label: Confidence
+    go_text: 'Above Threshold: Execute'
+    fallback_text: 'Below Threshold: Fallback'
+    note_1: 'Weights Frozen:'
+    note_2: Harness Iteration
+    execute_title: Execute
+    execute_line_1: ESP32
+    execute_line_2: HID Tap
+    fallback_title: Fallback
+    fallback_line: Vision
+    next_frame: next frame
+    reads_note: 'Read Only: Adopted Lessons'
+    gate: 0.6
+  learning:
+    trajectories_title: Trajectories
+    failed: Failed
+    fell_back: Fallback
+    propose_title: Propose Candidate Patches
+    probe_title: Probe Offline Replay
+    probe_note: 'Frozen Replay: Zero Live Taps'
+    compose_title: Compose Optimal Patch
+    rule: Adopt Only If Beats Baseline
+    adopted: Adopted {v}
+    kept: Retain Current {v}
+  propose:
+    columns: [cue, lesson, evidence]
+  store:
+    title: Experience Store
+    initial: 2
+    subtitle: ''
+    version: ''
+    version_change: v{a} → v{b}
+    entries:
+    - dialog open → dismiss it
+    - page blank → reload once
+    - item offscreen → swipe up
+    - field idle → tap it first
+    - toast on top → swipe away
+    - spinner → wait 1s
+  status:
+    round: Iter {n}
+    confidence: Confidence
+    fallbacks: Fallbacks
+    store: Store
+  parts: [Prompt Template, Tool Guidance, Experience]
+  rounds:
+  - trajectory: ✓✓✗✓⇄✓✗✓⇄✓✓✗
+    patches: [[Prompt Template], [Tool Guidance], [Experience]]
+    baseline: 0.64
+    candidate_scores: [0.61, 0.62, 0.59]
+    winner: null
+    version: [1, 1]
+    lessons: 2
+    fallbacks: 7
+    confidences: [0.71, 0.67, 0.74, 0.55, 0.69, 0.72, 0.52, 0.64, 0.73, 0.57, 0.62, 0.59, 0.75, 0.54, 0.69, 0.72, 0.53, 0.51, 0.74, 0.65]
+  - trajectory: ✓✓✓✗✓✓⇄✓✓✓✗✓
+    patches: [[Experience], [Tool Guidance], [Prompt Template]]
+    baseline: 0.64
+    candidate_scores: [0.67, 0.75, 0.65]
+    winner: 2
+    version: [1, 2]
+    lessons: 4
+    fallbacks: 4
+    confidences: [0.78, 0.76, 0.8, 0.74, 0.57, 0.77, 0.79, 0.75, 0.81, 0.73, 0.53, 0.78, 0.76, 0.8, 0.55, 0.77, 0.71, 0.79, 0.54, 0.78]
+  - trajectory: ✓✓✓✓✓✓⇄✓✓✓✓✓
+    patches: [[Prompt Template], [Experience], [Tool Guidance]]
+    baseline: 0.75
+    candidate_scores: [0.87, 0.8, 0.78]
+    winner: 1
+    version: [2, 3]
+    lessons: 6
+    fallbacks: 2
+    confidences: [0.86, 0.88, 0.85, 0.87, 0.89, 0.84, 0.86, 0.57, 0.88, 0.87, 0.85, 0.89, 0.86, 0.84, 0.87, 0.88, 0.85, 0.54, 0.89, 0.87]

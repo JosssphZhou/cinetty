@@ -1,0 +1,83 @@
+# circuit-flow: eight lettered modules on a 120 x 40 grid, wires with net labels,
+# a typed execution log, a command line and a status bar. Motion comes from events.
+driver: events
+canvas: {cols: 120, rows: 40, fps: 30}
+duration: 44.0
+
+palette:
+  power: [232, 145, 107]
+  core: [180, 140, 255]
+  keys: [255, 122, 168]
+  level: [79, 209, 139]
+  io: [90, 176, 255]
+  green: [79, 209, 139]
+event_colors: [power, core, keys, level, io]
+event_types: [pulse, light, log, status, highlight]
+
+title: {text: "{{title}}", row: 1, field: fields.title}
+
+# Columns 1-28, 41-78 and 91-118; rows 3-8, 13-20 and 25-30.
+boxes:
+  - {id: A, rect: [1, 3, 28, 8], color: power, field: fields.modules.A, name: "{{modules.A.name}}", role: "{{modules.A.role}}", details: "{{modules.A.details}}"}
+  - {id: D, rect: [41, 3, 78, 8], color: power, field: fields.modules.D, name: "{{modules.D.name}}", role: "{{modules.D.role}}", details: "{{modules.D.details}}"}
+  - {id: E, rect: [91, 3, 118, 8], color: level, field: fields.modules.E, name: "{{modules.E.name}}", role: "{{modules.E.role}}", details: "{{modules.E.details}}"}
+  - {id: F, rect: [1, 13, 28, 20], color: power, field: fields.modules.F, name: "{{modules.F.name}}", role: "{{modules.F.role}}", details: "{{modules.F.details}}"}
+  - {id: B, rect: [41, 13, 78, 20], color: core, field: fields.modules.B, name: "{{modules.B.name}}", role: "{{modules.B.role}}", details: "{{modules.B.details}}"}
+  - {id: C, rect: [91, 13, 118, 20], color: keys, field: fields.modules.C, name: "{{modules.C.name}}", role: "{{modules.C.role}}", details: "{{modules.C.details}}"}
+  - {id: G, rect: [41, 25, 78, 30], color: keys, field: fields.modules.G, name: "{{modules.G.name}}", role: "{{modules.G.role}}", details: "{{modules.G.details}}"}
+  - {id: H, rect: [91, 25, 118, 30], color: io, field: fields.modules.H, name: "{{modules.H.name}}", role: "{{modules.H.role}}", details: "{{modules.H.details}}"}
+
+# Wires are named by the boxes they join, in the default signal direction.
+wires:
+  - {id: a_d, pts: [[29, 5], [40, 5]], color: power, arrows: [[40, 5, "▶"]],
+     labels: [{at: [33, 5], text: "{{nets.a_d}}", field: fields.nets.a_d}]}
+  - {id: a_f, pts: [[15, 9], [15, 12]], color: power, arrows: [[15, 12, "▼"]],
+     labels: [{at: [17, 11], text: "{{nets.a_f}}", field: fields.nets.a_f}]}
+  - {id: a_b, pts: [[24, 9], [24, 10], [46, 10], [46, 12]], color: power, arrows: [[46, 12, "▼"]],
+     labels: [{at: [28, 10], text: "{{nets.a_b}}", field: fields.nets.a_b}]}
+  - {id: b_d, pts: [[64, 12], [64, 9]], color: core, arrows: [[64, 9, "▲"]],
+     labels: [{at: [54, 11], text: "{{nets.b_d}}", field: fields.nets.b_d}]}
+  - {id: d_e, pts: [[79, 5], [90, 5]], color: power, arrows: [[90, 5, "▶"]],
+     labels: [{at: [83, 5], text: "{{nets.d_e}}", field: fields.nets.d_e}]}
+  - {id: b_e, pts: [[74, 12], [74, 10], [101, 10], [101, 9]], color: core, arrows: [[101, 9, "▲"], [74, 12, "▼"]],
+     labels: [{at: [81, 10], text: "{{nets.b_e}}", field: fields.nets.b_e}]}
+  - {id: d_c, pts: [[76, 9], [76, 11], [99, 11], [99, 12]], color: power, arrows: [[99, 12, "▼"]],
+     labels: [{at: [79, 11], text: "{{nets.d_c}}", field: fields.nets.d_c}]}
+  - {id: e_c, pts: [[105, 9], [105, 12]], color: level, arrows: [[105, 12, "▼"], [105, 9, "▲"]],
+     labels: [{at: [107, 10], text: "{{nets.e_c.0}}", field: "fields.nets.e_c[0]"},
+              {at: [107, 11], text: "{{nets.e_c.1}}", field: "fields.nets.e_c[1]"}]}
+  - {id: f_b, pts: [[29, 16], [40, 16]], color: power, arrows: [[40, 16, "▶"]],
+     labels: [{at: [30, 16], text: "{{nets.f_b}}", field: fields.nets.f_b}]}
+  - {id: b_f, pts: [[40, 18], [29, 18]], color: core, arrows: [[29, 18, "◀"]],
+     labels: [{at: [31, 18], text: "{{nets.b_f}}", field: fields.nets.b_f}]}
+  - {id: b_c, pts: [[79, 15], [90, 15]], color: core, arrows: [[90, 15, "▶"]],
+     labels: [{at: [81, 15], text: "{{nets.b_c}}", field: fields.nets.b_c}]}
+  - {id: c_b, pts: [[90, 17], [79, 17]], color: keys, arrows: [[79, 17, "◀"]],
+     labels: [{at: [81, 17], text: "{{nets.c_b}}", field: fields.nets.c_b}]}
+  - {id: b_g, pts: [[60, 21], [60, 24]], color: core, arrows: [[60, 24, "▼"]],
+     labels: [{at: [62, 22], text: "{{nets.b_g}}", field: fields.nets.b_g}]}
+  - {id: g_c, pts: [[79, 27], [89, 27], [89, 19], [90, 19]], color: keys, arrows: [[90, 19, "▶"]],
+     labels: [{at: [80, 26], text: "{{nets.g_c}}", field: fields.nets.g_c}]}
+  # H to C carries three nets; each label lights only with pulses that carry its tag.
+  - {id: h_c, pts: [[113, 24], [113, 21]], color: io, arrows: [[113, 21, "▲"], [113, 24, "▼"]],
+     labels: [{right_at: [111, 22], text: "{{nets.h_c.0}}", tag: h_c.0, field: "fields.nets.h_c[0]"},
+              {right_at: [111, 23], text: "{{nets.h_c.1}}", tag: h_c.1, field: "fields.nets.h_c[1]"},
+              {right_at: [111, 24], text: "{{nets.h_c.2}}", tag: h_c.2, field: "fields.nets.h_c[2]"}]}
+  - {id: h_b, pts: [[105, 30], [105, 31], [34, 31], [34, 19], [40, 19]], color: io, trim_start: 1,
+     arrows: [[40, 19, "▶"], [105, 31, "▲"]],
+     labels: [{right_at: [32, 22], text: "{{nets.h_b.0}}", tag: h_b.0, field: "fields.nets.h_b[0]"},
+              {right_at: [32, 23], text: "{{nets.h_b.1}}", tag: h_b.1, field: "fields.nets.h_b[1]"},
+              {right_at: [32, 24], text: "{{nets.h_b.2}}", tag: h_b.2, field: "fields.nets.h_b[2]"}]}
+
+legend:
+  at: [2, 26]
+  items:
+    - {color: power, text: "{{legend.power}}"}
+    - {color: core, text: "{{legend.core}}"}
+    - {color: keys, text: "{{legend.keys}}"}
+    - {color: level, text: "{{legend.level}}"}
+    - {color: io, text: "{{legend.io}}"}
+
+log: {rect: [1, 33, 118, 37], title: "{{log_title}}", lines: 2, cps: 40, clock_start: "{{clock_start}}"}
+prompt: {at: [1, 38], prefix: "{{prompt.path}}", command: "{{prompt.command}}", delay: 0.4, cps: 16, field: fields.prompt.command}
+status: {at: [1, 39], keys: "{{status}}", live_color: green}

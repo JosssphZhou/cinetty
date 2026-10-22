@@ -1,0 +1,175 @@
+# The circuit-flow template filled with a web service instead of a circuit board: one order
+# request runs from the edge through the API, auth, cache, database and a job queue.
+# Every name and number here is made up for the example.
+template: circuit-flow
+template_version: 1
+name: web-service-en
+fields:
+  title: SHOP API ORDER FLOW
+  modules:
+    A:
+      name: EDGE + TLS
+      role: CDN and TLS termination
+      details:
+      - HTTPS :443
+      - HTTP/2
+    B:
+      name: API SERVER
+      role: Order endpoints
+      details:
+      - POST /api/orders
+      - GET  /api/orders/:id
+      - 8 workers  pool 20
+      - timeout 5 s
+    C:
+      name: POSTGRES
+      role: Orders and users
+      details:
+      - orders  users
+      - primary + 1 replica
+    D:
+      name: AUTH SERVICE
+      role: Tokens and roles
+      details:
+      - JWT verify
+      - 'roles: buyer admin'
+    E:
+      name: SESSION CACHE
+      role: Sessions, 15 min TTL
+      details:
+      - Redis 7
+      - 2 GB
+    F:
+      name: RATE LIMITER
+      role: 100 requests per minute
+      details:
+      - per user
+      - token bucket
+    G:
+      name: JOB QUEUE
+      role: Background work
+      details:
+      - send_receipt
+      - update_stock
+    H:
+      name: OPS
+      role: Admin and metrics
+      details:
+      - /metrics  /health
+      - on-call only
+  nets:
+    a_d: login
+    a_f: every request
+    a_b: HTTPS /api
+    b_d: verify
+    d_e: token
+    b_e: GET  SET session
+    d_c: users  roles
+    e_c:
+    - miss → load
+    - write back
+    f_b: allow
+    b_f: count
+    b_c: INSERT
+    c_b: rows
+    b_g: enqueue jobs
+    g_c: UPDATE
+    h_c:
+    - migrations
+    - backups
+    - slow queries
+    h_b:
+    - /metrics
+    - /health
+    - flags
+  legend:
+    power: edge and access
+    core: API
+    keys: data and jobs
+    level: cache
+    io: operations
+  log_title: request log
+  clock_start: '12:00:00'
+  prompt:
+    path: ~/shop-api $
+    command: replay "POST /api/orders, one order with two items"
+  status:
+  - key: tls
+    initial: --
+  - key: auth
+    initial: --
+  - key: cache
+    initial: --
+  - key: db
+    initial: --
+  - key: queue
+    initial: '0'
+  - key: p95
+    initial: --
+  - key: orders
+    initial: '0'
+events:
+  - {t: 3.0, type: light, box: A, until: 7.0}
+  - {t: 3.2, type: log, color: power, tag: edge, text: 'TLS handshake done, POST /api/orders enters the edge'}
+  - {t: 3.4, type: pulse, wire: a_f, dur: 1.0}
+  - {t: 3.6, type: status, key: tls, value: '1.3'}
+  - {t: 4.4, type: light, box: F, until: 6.4}
+  - {t: 4.6, type: log, color: power, tag: limit, text: 'user 4182 has made 12 of 100 requests this minute, allowed'}
+  - {t: 5.0, type: pulse, wire: f_b, dur: 1.0}
+  - {t: 5.2, type: pulse, wire: a_b, dur: 1.4}
+  - {t: 6.4, type: light, box: B, until: 60.0}
+  - {t: 6.6, type: log, color: core, tag: api, text: 'API server takes the request on worker 3'}
+  - {t: 7.4, type: pulse, wire: b_d, dur: 1.0}
+  - {t: 8.2, type: light, box: D, until: 12.4}
+  - {t: 8.4, type: log, color: power, tag: auth, text: 'auth checks the bearer token signature'}
+  - {t: 9.0, type: pulse, wire: d_e, dur: 1.0}
+  - {t: 9.6, type: light, box: E, until: 13.0}
+  - {t: 9.8, type: log, color: level, tag: cache, text: 'session found in the cache, user 4182, role buyer'}
+  - {t: 10.0, type: status, key: cache, value: hit}
+  - {t: 10.8, type: pulse, wire: b_e, dur: 1.2, dir: -1}
+  - {t: 11.6, type: status, key: auth, value: buyer}
+  - {t: 12.0, type: pulse, wire: d_c, dur: 1.4}
+  - {t: 12.0, type: log, color: power, tag: auth, text: 'roles for user 4182 confirmed from the users table'}
+  - {t: 13.4, type: light, box: C, until: 60.0}
+  - {t: 14.0, type: pulse, wire: b_c, dur: 0.9}
+  - {t: 14.0, type: log, color: keys, tag: db, text: 'BEGIN; INSERT INTO orders (user_id, items) VALUES (4182, 2 items)'}
+  - {t: 14.9, type: pulse, wire: b_c, dur: 0.9}
+  - {t: 15.8, type: pulse, wire: c_b, dur: 0.9}
+  - {t: 16.0, type: log, color: keys, tag: db, text: 'COMMIT, order 90517 written in 14 ms'}
+  - {t: 16.0, type: status, key: db, value: 14 ms}
+  - {t: 16.2, type: highlight, box: C, text: orders, color: keys}
+  - {t: 17.4, type: pulse, wire: e_c, dur: 1.0, dir: -1}
+  - {t: 17.4, type: log, color: level, tag: cache, text: 'the new order is written back to the cache'}
+  - {t: 18.0, type: light, box: E, until: 20.0}
+  - {t: 19.4, type: pulse, wire: b_g, dur: 1.0}
+  - {t: 19.4, type: log, color: keys, tag: queue, text: 'enqueue send_receipt and update_stock for order 90517'}
+  - {t: 19.6, type: status, key: queue, value: '2'}
+  - {t: 20.4, type: light, box: G, until: 30.0}
+  - {t: 21.0, type: highlight, box: G, text: send_receipt, color: keys}
+  - {t: 21.6, type: log, color: core, tag: api, text: '201 Created, order 90517 returned to the client in 182 ms'}
+  - {t: 21.6, type: status, key: p95, value: 182 ms}
+  - {t: 21.8, type: status, key: orders, value: '1'}
+  - {t: 23.4, type: highlight, box: G, text: update_stock, color: keys}
+  - {t: 23.4, type: pulse, wire: g_c, dur: 1.4}
+  - {t: 23.6, type: log, color: keys, tag: worker, text: 'update_stock: UPDATE products SET stock = stock - 1 for 2 items'}
+  - {t: 25.0, type: status, key: queue, value: '0'}
+  - {t: 25.2, type: log, color: keys, tag: worker, text: 'send_receipt done, receipt mailed for order 90517'}
+  - {t: 27.0, type: light, box: H, until: 34.0}
+  - {t: 27.0, type: pulse, wire: h_b, dur: 1.2, label: h_b.0}
+  - {t: 27.2, type: log, color: io, tag: ops, text: 'metrics scraped: 1 order, p95 182 ms, 0 errors'}
+  - {t: 29.0, type: pulse, wire: h_b, dur: 1.0, label: h_b.1}
+  - {t: 29.2, type: log, color: io, tag: ops, text: '/health answers ok from all 8 workers'}
+  - {t: 31.0, type: pulse, wire: h_c, dur: 1.3, label: h_c.2}
+  - {t: 31.2, type: log, color: io, tag: ops, text: 'slow query check: nothing over 100 ms in the last minute'}
+  - {t: 33.0, type: pulse, wire: h_c, dur: 1.0, dir: -1, label: h_c.1}
+  - {t: 33.2, type: log, color: io, tag: ops, text: 'nightly backup of orders is up to date'}
+  - {t: 35.0, type: light, box: A, until: 39.0}
+  - {t: 35.0, type: pulse, wire: a_d, dur: 1.0}
+  - {t: 35.2, type: log, color: power, tag: edge, text: 'next request: GET /api/orders/90517 from the same user'}
+  - {t: 36.0, type: pulse, wire: d_e, dur: 1.0}
+  - {t: 36.4, type: light, box: E, until: 40.0}
+  - {t: 37.0, type: pulse, wire: b_e, dur: 1.2}
+  - {t: 37.2, type: log, color: level, tag: cache, text: 'order 90517 served from the cache in 3 ms, no database read'}
+  - {t: 37.2, type: status, key: p95, value: 3 ms}
+  - {t: 39.0, type: highlight, box: B, text: GET, color: core}
+  - {t: 40.0, type: log, color: core, tag: api, text: '200 OK, both requests done'}

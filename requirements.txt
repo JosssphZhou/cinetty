@@ -1,0 +1,4 @@
+# Versions tested on macOS (Apple silicon). Newer ones usually work.
+numpy==2.5.4
+pillow==13.0.0
+pyyaml==6.0.3

@@ -1,0 +1,232 @@
+# photo-loop: a vision model reads a real photo (top, with live box effects),
+# and a background learning loop improves it over two or three rounds (bottom). Ends
+# with a split screen of the same photo before and after.
+canvas: {cols: 66, rows: 48, fps: 60}
+
+palette:
+  h2: [0, 215, 255]
+  jev: [180, 140, 255]
+  gold: [255, 196, 87]
+  fg: [120, 190, 255]
+  phc: [190, 196, 212]
+  go: [110, 224, 190]
+  fb: [255, 150, 110]
+  rose: [255, 130, 150]
+
+style:
+  flash: 0.25
+  title_margin: 5
+  core_pulse: {source: tick, decay: 0.12}
+
+title: {text: "{{title}}", row: 1, scatter: 30, hue_loop: true}
+
+data:
+  kinds: "{{patch_kinds}}"
+  slots: "{{slots}}"
+  entries: "{{store.entries}}"
+  output_line: "{{output.line}}"
+derive:
+  win: "{None if round.get('winner') is None else round.winner - 1}"
+  v: "{round.version}"
+  slot: "{None if round.get('winner') is None else [s.id for s in data.slots].index(round.learned_slot)}"
+  learn: "{round.get('learned') or ''}"
+rounds: "{{rounds}}"
+version: {key: v, phase: store, at: 0.4}
+
+ticker:
+  period: [0.46, 0.34, 0.25]
+  confidences: "{[r.confidences for r in all_rounds]}"
+  threshold: "{{core.gate}}"
+  actions: [tap, type, scroll]
+  wrap_end: true
+  pulses:
+    - {wire: w_in, from: 0, to: 0.35}
+    - {wire: w_go, from: 0.4, to: 0.7, when: go}
+    - {wire: w_fb, from: 0.4, to: 0.65, when: fallback}
+    - {wire: w_ret, from: 0.7, to: 1.0, when: go}
+    - {wire: w_ret2, from: 0.7, to: 1.0, when: fallback}
+
+photo_layer:
+  box: phone
+  at: [1, 1]
+  size: [57, 13]
+  rounds: "{[[r.photo, r.quality] for r in all_rounds]}"
+  fx_period: [3.6, 3.0, 2.6]
+  compare: true
+
+timeline:
+  intro: 1.8
+  phases:
+    - {name: traj,     dur: 1.4, kind: transfer}
+    - {name: propose,  dur: 1.8, kind: work}
+    - {name: to_probe, dur: 0.4, kind: transfer}
+    - {name: probe,    dur: 3.4, kind: work}
+    - {name: to_comp,  dur: 0.4, kind: transfer}
+    - {name: compose,  dur: 2.4, kind: work}
+    - {name: store,    dur: 1.6, kind: work}
+  duration_scale:
+    - {transfer: 1.0,  work: 1.0}
+    - {transfer: 0.8,  work: 0.85}
+    - {transfer: 0.62, work: 0.7}
+  hold: 1.0
+  freeze: 3.0          # the before/after split screen plays here
+  outro: 1.6
+  snapshot: {round: 2, phase: probe, at: 0.7}
+
+boxes:
+  - {id: fgf, rect: [0, 2, 65, 29], color: fg, style: frame, title: "{{sections.live}}", level: 0.45}
+  - {id: bgf, rect: [0, 30, 65, 45], color: h2, style: frame, title: "{{sections.learning}}", level: 0.45}
+
+  - id: phone
+    rect: [2, 4, 60, 19]
+    color: phc
+    layer: live
+    title: " {{boxes.input}}"
+    idle: 0.8
+    content:
+      - {type: viewfinder, good: "{{input.good_quality}}", poor: "{{input.poor_quality}}"}
+
+  - id: core
+    rect: [2, 21, 43, 27]
+    color: jev
+    style: core
+    layer: live
+    title: " {{boxes.core}}"
+    content:
+      - type: kv
+        row: 0
+        parts:
+          - {text: "class ", color: gray, x: 2, show: "{photo.ready}"}
+          - {text: "{photo.name}", color: bright, bold: true, x: 8, show: "{photo.ready}"}
+          - {text: "bbox ", color: gray, x: 16, show: "{photo.ready}"}
+          - {text: "{photo.bbox}", color: [mix, jev, bright, 0.3], bold: true, x: 21, show: "{photo.ready}"}
+      - {type: meter, row: 1, x: 2, label: "conf ", label_gap: 0, value: "{tick.conf}", width: 14, threshold: "{{core.gate}}", ok_color: go,
+         low_color: fb, check: {x: 7, ok: "✓ ≥ {tick.gate:.2f}", low: "↻ < {tick.gate:.2f}"}}
+      - {type: text, row: 2, x: 2, text: " {{core.frozen}}", color: [mix, jev, bright, 0.25], bold: true}
+      - {type: slots, names: "{[s.id for s in data.slots]}", offsets: [0, 13, 25], row: 3, phase: store, beam_from: 41}
+
+  - id: exec
+    rect: [46, 22, 62, 24]
+    color: go
+    layer: live
+    title: " {{boxes.output}}"
+    lit_tick: {when: go, window: [0.4, 0.95], else: 0.3}
+    content:
+      - {type: text, row: 0, align: center, text: "{{output.line}}", full: "{{output.line}}  ✓",
+         color: [mix, bg, go, 0.55], active: {tick: go}}
+      - {type: text, row: 0, align: center, text: "✓", inactive_text: "○", full: "{{output.line}}  ✓",
+         shift: "{tw(data.output_line) + 1}", color: dim, active_color: go, active: {tick: go}}
+
+  - id: fbk
+    rect: [46, 25, 62, 27]
+    color: fb
+    layer: live
+    title: " {{boxes.fallback}}"
+    lit_tick: {when: fallback, window: [0.4, 0.95], else: 0.2}
+    content:
+      - {type: text, row: 0, align: center, text: "{{output.fallback_line}}", color: [mix, bg, fb, 0.55], active: {tick: fallback}}
+
+  - id: traj
+    rect: [2, 33, 20, 35]
+    color: rose
+    title: " {{boxes.trajectories}}"
+    lit: [traj]
+    content:
+      - {type: sequence, phase: traj, items: "{round.trajectory}", max: 10, x: 1, spacing: 1, cross: "✕",
+         ok_color: go, alt_color: fb, field: "rounds[].trajectory"}
+
+  - id: propose
+    rect: [2, 38, 20, 42]
+    color: h2
+    title: " {{boxes.propose}}"
+    lit: [propose]
+    content:
+      - type: lines
+        phase: propose
+        x: 1
+        items: "{['H' + str(i + 1) + ' ' + [k.icon for k in data.kinds if k.name == p][0] + ' ' + p for i, p in enumerate(round.patches)]}"
+        step: 0.2
+        cps: 110
+        flash: 0.14
+        flash_color: bright
+        color: [mix, h2, soft, 0.3]
+        field: "rounds[].patches"
+
+  - id: probe
+    rect: [23, 39, 37, 43]
+    color: h2
+    title: " {{boxes.probe}}"
+    lit: [probe]
+    snapshot: 0.7
+    content:
+      - {type: race, layout: inline, phase: probe, scores: "{round.candidate_scores}", base: "{round.baseline}",
+         win: "{round.win}", label_w: 3, gap: 0, star_offset: 5, row_step: 1, color: h2}
+      - {type: text, on_border: top, align: right, x: 3, text: "", color: [mix, bg, jev, 0.8], bold: true,
+         show: {phase: probe}}
+
+  - id: store
+    rect: [40, 32, 63, 43]
+    color: gold
+    title: " {{boxes.store}}"
+    lit: [store]
+    snapshot: 0.4
+    content:
+      - {type: store, layout: compact, phase: store, entries: "{[[e.icon, e.cue, e.lesson] for e in data.entries]}",
+         count_key: lessons, initial: "{{store.initial}}", show: 4}
+
+  - id: compose
+    rect: [23, 32, 37, 37]
+    color: h2
+    title: " {{boxes.compose}}"
+    lit: [compose]
+    content:
+      - type: verdict
+        phase: compose
+        x: 1
+        line: "{lab} {val}{rel}{cur}"
+        scores: candidate_scores
+        base: baseline
+        color: h2
+        verdict_row: 3
+        format: false
+        win_text: "✓ {{compose.adopt}} v{round.v[1]}"
+        keep_text: "= {{compose.keep}} v{round.v[0]}"
+
+wires:
+  - {id: w_in, path: [[20, 20], [20, 20]], color: fg, arrow: [20, 20, "▼"], to: core, decay: 0.6}
+  - {id: w_go, path: [[44, 23], [45, 23]], color: go, arrow: [45, 23, "▶"], to: exec, decay: 0.6}
+  - {id: w_fb, path: [[44, 26], [45, 26]], color: fb, arrow: [45, 26, "▶"], to: fbk, decay: 0.6}
+  - {id: w_ret, path: [[62, 23], [63, 23], [63, 12], [61, 12]], color: go, arrow: [61, 12, "◀"], to: phone, decay: 0.6,
+     label: {text: " ↺ t+1 ", x: 55, y: 21, energy_of: [w_ret, w_ret2]}}
+  - {id: w_ret2, path: [[62, 26], [63, 26], [63, 12], [61, 12]], color: fb, to: phone, decay: 0.6}
+  - {id: w_tr, path: [[8, 28], [8, 32]], color: rose, arrow: [8, 32, "▼"], to: traj,
+     pulses: [{phase: traj}]}
+  - {id: w_pr, path: [[8, 36], [8, 37]], color: h2, arrow: [8, 37, "▼"], to: propose,
+     pulses: [{phase: propose, from: 0.6, to: 1.0, plus_to: 0.2}]}
+  - {id: w_pb, path: [[21, 40], [22, 40]], color: h2, arrow: [22, 40, "▶"], to: probe,
+     pulses: [{phase: to_probe}]}
+  - {id: w_cm, path: [[30, 38], [30, 38]], color: h2, arrow: [30, 38, "▲"], to: compose,
+     pulses: [{phase: probe, from: 1.0, plus_from: -0.3, to: 1.0, plus_to: 0.3}]}
+  - {id: w_st, path: [[38, 34], [39, 34]], color: gold, arrow: [39, 34, "▶"], to: store,
+     pulses: [{phase: compose, from: 0.5, to: 1.0, plus_to: 0.3, if: "round.win is not None"}]}
+  - {id: w_rd, path: [[41, 32], [41, 28]], color: gold, arrow: [41, 28, "▲"], to: core,
+     pulses: [{phase: store, from: 0.4, to: 0.4, plus_to: 0.3, if: "round.win is not None"},
+              {every: 0.5, dur: 0.7, start: intro, until: hot}]}
+
+overlay:
+  - type: divider
+    z: over
+    style: rainbow
+    center: 48
+    labels: [{text: "{{sections.live_tag}}", row: 29}, {text: "{{sections.learning_tag}}", row: 30}]
+  - {type: label, z: over, x: 31, y: 28, text: "{{core.read_only}}", color: [mix, gold, bg, 0.4]}
+  - type: status
+    z: top
+    row: 46
+    style: brackets
+    gap: 2
+    items:
+      - {key: "{{status.round}}", value: "{round.n}/{rounds}"}
+      - {key: "{{status.confidence}}", value: "{tick.conf:.2f}", live: true}
+      - {key: "{{status.fallbacks}}", value: "{round.fallbacks}/{len(round.confidences)}"}
+      - {key: "{{status.store}}", value: "v{version}", accent: true}

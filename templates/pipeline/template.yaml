@@ -1,0 +1,141 @@
+id: pipeline
+version: 1
+title: Agent workflow (portrait)
+purpose: A main agent plans, a router hands each step to one to three workers (agents, people or services), and an advisor steps in at three moments.
+kind: video
+terminal: 90 x 46 cells, 30 fps
+duration: 15 s (one cycle; make play LOOP=1 repeats it)
+preview: {still: preview/still.png, clip: preview/clip.mp4}
+example: {en: examples/agent-workflow/project.en.yaml}
+notes: >
+  Fixed layout: the advisor column on the left with three moments (before a plan, a repeated
+  error, before done), the main session top centre, the router below it with three question
+  rows and probability bars, one to three worker cards, the review box, a four-line session log, a
+  command line and a status bar. Packets run along four routes: plan (main to router),
+  escalate (router back to main), dispatch (router to a worker card) and handback
+  (worker to review). The router counter and the advisor's token count show the starting values you give
+  and change only where an event carries a new value (forks, tokens); the call count is the
+  number of advice events so far.
+
+fields:
+  title: {type: text, max_cells: 40, desc: "Rainbow title. Letters are drawn one cell apart and words three apart."}
+  legend:
+    type: record
+    desc: The colour legend under the title. All four together must fit one 90-cell line.
+    fields:
+      main: {type: text, max_cells: 20, desc: "Orange, the main session."}
+      workers: {type: text, max_cells: 22, desc: "Blue, the workers."}
+      router: {type: text, max_cells: 20, desc: "Green, the router."}
+      advisor: {type: text, max_cells: 28, desc: "Purple, the advisor."}
+  participants:
+    type: list
+    min_items: 1
+    max_items: 12
+    desc: Every name that appears in the log (events' who). role picks the colour.
+    of:
+      type: record
+      fields:
+        name: {type: text, max_cells: 11}
+        role: {type: enum, values: [main, workers, router, advisor]}
+  advisor:
+    type: record
+    desc: The advisor column on the left.
+    fields:
+      name: {type: text, max_cells: 19, desc: Title at the top.}
+      state_idle: {type: text, max_cells: 19, desc: Second line while quiet.}
+      state_active: {type: text, max_cells: 19, desc: Second line while advising.}
+      moments: {type: list, items: 3, of: {type: text, max_cells: 17}, desc: "The three moments it is called at (rows 6, 26, 34); events refer to them as moment 0, 1, 2."}
+      about: {type: list, min_items: 0, max_items: 4, of: {type: text, max_cells: 17}, desc: What it does.}
+      advice_label: {type: text, max_cells: 17, desc: Label above the last advice.}
+      calls_label: {type: text, max_cells: 14, desc: Label of the call counter.}
+      tokens_label: {type: text, max_cells: 17, desc: Label of the token counter.}
+      tokens_start: {type: integer, range: [0, 99999], unit: thousand tokens, desc: "Token counter at the start; an advise event with tokens sets it to a new value."}
+      quiet: {type: list, min_items: 0, max_items: 2, of: {type: text, max_cells: 17}, desc: Lines in the middle of the column.}
+      rule: {type: list, min_items: 0, max_items: 4, of: {type: text, max_cells: 17}, desc: Lines at the bottom of the column.}
+  main:
+    type: record
+    desc: The main session box.
+    fields:
+      title: {type: text, max_cells: 24}
+      subtitle: {type: text, max_cells: 24}
+      effort_label: {type: text, max_cells: 8, desc: Word before the effort bar.}
+      effort: {type: text, max_cells: 8, desc: Word after the effort bar.}
+      note: {type: text, max_cells: 24, desc: "Last line, for example the context size."}
+  router:
+    type: record
+    desc: The router box with three question rows.
+    fields:
+      title: {type: text, max_cells: 22}
+      counter_label: {type: text, max_cells: 8, desc: Label of the counter in the top right.}
+      counter_start: {type: integer, range: [0, 9999999], desc: "Counter value at the start; a log or decision event with forks sets it to a new value, and the counter counts up to it."}
+      questions: {type: list, items: 3, of: {type: text, max_cells: 13}, desc: "The three questions it answers (decision rows 0, 1, 2)."}
+      start_values: {type: list, items: 3, of: {type: number, range: [0, 1]}, desc: Probabilities shown before the first decision.}
+      sharp_word: {type: text, max_cells: 9, desc: Shown after a probability of 0.70 or more.}
+      split_word: {type: text, max_cells: 9, desc: Shown below 0.70.}
+      sharp_footer: {type: text, max_cells: 23, desc: Lit while every row is sharp.}
+      split_footer: {type: text, max_cells: 15, desc: Lit while any row is split.}
+      sharp_route: {type: text, max_cells: 21, desc: Log note for a sharp decision.}
+      split_route: {type: text, max_cells: 21, desc: Log note for a split decision.}
+  delegate:
+    type: record
+    desc: The line between the router and the worker cards, and the effort bar on each card.
+    fields:
+      label: {type: text, max_cells: 16}
+      effort: {type: text, max_cells: 16}
+      effort_label: {type: text, max_cells: 6, desc: Word before the effort bar on each card.}
+      effort_short: {type: text, max_cells: 3, desc: Word after the effort bar on each card.}
+  workers:
+    type: list
+    min_items: 1
+    max_items: 3
+    desc: "One to three worker cards, left to right (cards 0, 1, 2 in events). One card sits in the middle, two on the outer sides; the lines go only to the cards you fill."
+    of:
+      type: record
+      fields:
+        name: {type: text, max_cells: 16}
+        model: {type: text, max_cells: 16}
+        task: {type: text, max_cells: 16}
+  worker_states:
+    type: record
+    desc: Words on the last line of a card.
+    fields:
+      idle: {type: text, max_cells: 14}
+      running: {type: text, max_cells: 14}
+      waiting: {type: text, max_cells: 14, desc: While the advisor holds this card (hold_card).}
+      passed: {type: text, max_cells: 14, desc: After a handback with result passed.}
+      done: {type: text, max_cells: 14, desc: After a handback with result done.}
+  review:
+    type: record
+    desc: The box the work returns to.
+    fields:
+      title: {type: text, max_cells: 12}
+      effort: {type: text, max_cells: 11}
+      subtitle: {type: text, max_cells: 30}
+  log_title: {type: text, max_cells: 30}
+  clock_start: {type: text, max_cells: 8, allowed_chars: "0123456789:", desc: "HH:MM:SS of the first log line; later lines add their event time."}
+  prompt:
+    type: record
+    fields:
+      path: {type: text, max_cells: 20}
+      command: {type: text, max_cells: 60}
+  status:
+    type: record
+    desc: The status bar. The advisor value switches while it advises; the router value is the live counter.
+    fields:
+      effort_key: {type: text, max_cells: 10}
+      effort_value: {type: text, max_cells: 12}
+      workers_key: {type: text, max_cells: 10}
+      workers_value: {type: text, max_cells: 6}
+      advisor_key: {type: text, max_cells: 10}
+      advisor_idle: {type: text, max_cells: 10}
+      advisor_active: {type: text, max_cells: 10}
+      router_key: {type: text, max_cells: 8}
+      counter_unit: {type: text, max_cells: 8}
+
+events:
+  desc: Timed events, seconds from the start, never decreasing.
+  types:
+    advise: {until: end time, moment: "0, 1 or 2", lines: one or two lines of advice (typed), who: a participant, log: log line at the start, log_end: optional log line at the end, hold_card: "optional card (0 up to the number of workers - 1) shown as waiting", tokens: "optional whole number: the token count (thousands) from this event on"}
+    log: {who: a participant, text: log line, route: "optional: plan, escalate, dispatch or handback", card: "worker card for dispatch and handback (0 up to the number of workers - 1)", result: "passed or done (handback)", forks: "optional whole number: the router counter from this event on"}
+    decision: {who: a participant, text: log line, row: "router row 0-2", p: probability 0-1, route: optional as above, card: optional, forks: "optional whole number: the router counter from this event on"}
+    review: {until: end time; the review box stays lit}

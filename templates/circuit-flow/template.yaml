@@ -1,0 +1,124 @@
+id: circuit-flow
+version: 1
+title: Circuit flow (landscape)
+purpose: A board of eight lettered modules lights up step by step as signals run along the wires between them.
+kind: video
+terminal: 120 x 40 cells, 30 fps
+duration: 44 s
+preview: {still: preview/still.png, clip: preview/clip.mp4}
+example: {zh: examples/circuit-flow/project.zh.yaml, en: examples/circuit-flow/project.en.yaml}
+notes: >
+  The layout is fixed: modules A, D, E on top, F, B, C in the middle, G and H at the bottom,
+  joined by 16 wires (named by the modules they join, such as a_d or h_b). The motion comes
+  from the project's events: a pulse runs a packet along a wire, light turns a module on
+  (with a light running around its border) until a given time, log types a line into the
+  execution log, status changes a value in the bottom bar, highlight colours a word in a
+  module's detail lines. Times are seconds from the start; the log clock is clock_start plus
+  the event time. Modules B, C and F hold four detail lines, the others two.
+
+fields:
+  title: {type: text, max_cells: 50, desc: "Rainbow title. Letters are drawn one cell apart and words three apart, so the drawn width is about twice the text."}
+  modules:
+    type: record
+    desc: The eight modules. name is the part or block, role says what it does, details are pins, nets or parts.
+    fields:
+      A: &small
+        type: record
+        desc: Top left (wires out to D, F and B).
+        fields:
+          name: {type: text, max_cells: 24}
+          role: {type: text, max_cells: 24}
+          details: {type: list, min_items: 0, max_items: 2, of: {type: text, max_cells: 24}}
+      D: &wide
+        type: record
+        desc: Top middle (from A and B, out to E and C).
+        fields:
+          name: {type: text, max_cells: 34}
+          role: {type: text, max_cells: 34}
+          details: {type: list, min_items: 0, max_items: 2, of: {type: text, max_cells: 34}}
+      E:
+        <<: *small
+        desc: Top right (from D and B, to and from C).
+      F:
+        type: record
+        desc: Middle left (from A, to and from B).
+        fields:
+          name: {type: text, max_cells: 24}
+          role: {type: text, max_cells: 24}
+          details: {type: list, min_items: 0, max_items: 4, of: {type: text, max_cells: 24}}
+      B:
+        type: record
+        desc: The centre module (to D, E, C, F and G; from A, F, C and H).
+        fields:
+          name: {type: text, max_cells: 34}
+          role: {type: text, max_cells: 34}
+          details: {type: list, min_items: 0, max_items: 4, of: {type: text, max_cells: 34}}
+      C:
+        type: record
+        desc: Middle right (from B, D, E, G; to B and H).
+        fields:
+          name: {type: text, max_cells: 24}
+          role: {type: text, max_cells: 24}
+          details: {type: list, min_items: 0, max_items: 4, of: {type: text, max_cells: 24}}
+      G:
+        <<: *wide
+        desc: Bottom middle (from B, out to C).
+      H:
+        <<: *small
+        desc: Bottom right (to and from C, and to B along the bottom).
+  nets:
+    type: record
+    desc: "Net labels drawn on the wires. Lists hold one label per net when a wire carries several. All sixteen wires are always drawn; write '' for a wire your system does not use, and it stays unlabelled."
+    fields:
+      a_d: {type: text, max_cells: 6, allow_empty: true, desc: "A to D, above the top-left wire."}
+      a_f: {type: text, max_cells: 20, allow_empty: true, desc: A down to F.}
+      a_b: {type: text, max_cells: 16, allow_empty: true, desc: A to B (the long wire under A).}
+      b_d: {type: text, max_cells: 8, allow_empty: true, desc: B up to D (written left of the wire).}
+      d_e: {type: text, max_cells: 6, allow_empty: true, desc: D to E.}
+      b_e: {type: text, max_cells: 18, allow_empty: true, desc: B to E and back (both directions).}
+      d_c: {type: text, max_cells: 18, allow_empty: true, desc: D to C.}
+      e_c: {type: list, items: 2, of: {type: text, max_cells: 12, allow_empty: true}, desc: "E to C and back, two labels on two lines."}
+      f_b: {type: text, max_cells: 9, allow_empty: true, desc: F to B.}
+      b_f: {type: text, max_cells: 9, allow_empty: true, desc: B to F.}
+      b_c: {type: text, max_cells: 8, allow_empty: true, desc: B to C.}
+      c_b: {type: text, max_cells: 8, allow_empty: true, desc: C to B.}
+      b_g: {type: text, max_cells: 20, allow_empty: true, desc: B down to G.}
+      g_c: {type: text, max_cells: 10, allow_empty: true, desc: G to C.}
+      h_c: {type: list, items: 3, of: {type: text, max_cells: 16, allow_empty: true}, desc: "Three nets between H and C, right-aligned left of the wire; a pulse with label h_c.0, h_c.1 or h_c.2 lights only that one."}
+      h_b: {type: list, items: 3, of: {type: text, max_cells: 12, allow_empty: true}, desc: "Three nets from H to B along the bottom, right-aligned; pulse labels h_b.0, h_b.1, h_b.2."}
+  legend:
+    type: record
+    desc: The colour legend at the bottom left, one word or two per colour.
+    fields:
+      power: {type: text, max_cells: 36, desc: "Colour of A, D, F."}
+      core: {type: text, max_cells: 36, desc: Colour of B.}
+      keys: {type: text, max_cells: 36, desc: "Colour of C, G."}
+      level: {type: text, max_cells: 36, desc: Colour of E.}
+      io: {type: text, max_cells: 36, desc: Colour of H.}
+  log_title: {type: text, max_cells: 30, desc: Title inside the execution log box.}
+  clock_start: {type: text, max_cells: 8, allowed_chars: "0123456789:", desc: "Time of day the log clock starts at, HH:MM:SS. Each log line shows this plus its event time."}
+  prompt:
+    type: record
+    desc: The command line under the log, typed at the start.
+    fields:
+      path: {type: text, max_cells: 20, desc: "Prompt, for example ~/board $"}
+      command: {type: text, max_cells: 90, desc: The command that starts the run.}
+  status:
+    type: list
+    min_items: 1
+    max_items: 8
+    desc: Keys of the status bar, left to right, with the value shown before any status event. A value differing from initial is drawn green.
+    of:
+      type: record
+      fields:
+        key: {type: text, max_cells: 8}
+        initial: {type: text, max_cells: 12}
+
+events:
+  desc: Timed events (inline list, or the path of a .jsonl file with one event per line). Times in seconds from the start, never decreasing.
+  types:
+    pulse: {wire: "one of a_d a_f a_b b_d d_e b_e d_c e_c f_b b_f b_c c_b b_g g_c h_c h_b", dur: "seconds (default 1)", dir: "1 along the wire's direction, -1 against it", label: "optional: light only this net label of the wire, such as h_c.0"}
+    light: {box: "A to H", until: "seconds; the most recent light of a box decides whether it is on, done or idle"}
+    log: {color: "power core keys level io", tag: short label, text: "the line (typed at 40 characters per second)"}
+    status: {key: "a status key", value: text}
+    highlight: {box: "A to H", text: "a word in the box's detail lines", color: "power core keys level io"}

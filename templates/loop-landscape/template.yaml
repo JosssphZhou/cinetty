@@ -1,0 +1,114 @@
+id: loop-landscape
+version: 1
+title: Self-improving loop (landscape)
+purpose: An agent harness that improves itself over three rounds, scored by a decision core.
+kind: video
+terminal: 120 x 40 cells, 60 fps
+duration: about 35 s
+preview: {still: preview/still.png, clip: preview/clip.mp4}
+example: {zh: examples/harness-landscape/project.zh.yaml, en: examples/harness-landscape/project.en.yaml}
+notes: >
+  Each round: a task arrives, Propose ranks the harness parts, Probe races three
+  candidate edits, Compose keeps the good ones, the run finishes, Experience and
+  Filter decide what is worth remembering, and the learned parts flow back.
+  Scores are 0..1 and are shown with two decimals.
+
+fields:
+  title: {type: text, max_cells: 38, desc: "Big rainbow title on the first row. Letters are drawn three cells apart, so keep it short."}
+  frame_title: {type: text, max_cells: 106, desc: Title on the outer frame.}
+  boxes:
+    type: record
+    desc: Box titles.
+    fields:
+      task: {type: text, max_cells: 28, desc: Box where the task arrives.}
+      executor: {type: text, max_cells: 60, desc: The fixed executor (the model that runs the task).}
+      propose: {type: text, max_cells: 28, desc: Step that ranks which parts to change.}
+      probe: {type: text, max_cells: 24, desc: Step that tries candidates side by side.}
+      compose: {type: text, max_cells: 26, desc: Step that keeps the changes that helped.}
+      core: {type: text, max_cells: 36, desc: The scoring core in the middle.}
+      harness: {type: text, max_cells: 36, desc: Long-term store of learned parts.}
+      filter: {type: text, max_cells: 22, desc: Step that decides what is worth remembering.}
+      experience: {type: text, max_cells: 20, desc: Per-round experience log.}
+  executor:
+    type: record
+    fields:
+      subtitle: {type: text, max_cells: 62, desc: One line under the executor title.}
+      trial: {type: text, max_cells: 25, desc: Shown while candidates are tried.}
+      running: {type: text, max_cells: 25, desc: Shown while the chosen version runs.}
+      done: {type: text, max_cells: 23, desc: Shown when the run finishes (a check mark is added).}
+  probe_question: {type: text, max_cells: 27, desc: Question the core answers during Probe.}
+  keep_at: {type: number, range: [0, 1], desc: "Score at which Compose and Filter keep a change: a score at or above it is kept, below it dropped. The kept and dropped counts in the summary follow it. Write the threshold your system uses, for example 0.7."}
+  compose_summary:
+    type: text
+    max_cells: 23
+    placeholders: [k, d]
+    measure: {k: 4, d: 4}
+    desc: Summary after Compose; {k} is the number kept, {d} the number dropped.
+  core:
+    type: record
+    fields:
+      tagline: {type: text, max_cells: 38, desc: One line inside the core box.}
+      ports:
+        type: list
+        items: 4
+        of: {type: text, max_cells: 11}
+        desc: Names of the four score readouts, in the order Propose, Probe, Compose, Filter.
+  lessons_label: {type: text, max_cells: 10, desc: Label for the lesson counter.}
+  next_label: {type: text, max_cells: 14, desc: Text that shows when learned parts flow back.}
+  status:
+    type: record
+    desc: Keys of the status line at the bottom.
+    fields:
+      round: {type: text, max_cells: 10}
+      conf: {type: text, max_cells: 10}
+      score: {type: text, max_cells: 10}
+      lessons: {type: text, max_cells: 10}
+      speed: {type: text, max_cells: 10}
+  parts:
+    type: list
+    items: 8
+    of: {type: text, max_cells: 13}
+    desc: The eight parts of the harness that can be changed. Rounds refer to them by name.
+  rounds:
+    type: list
+    items: 3
+    desc: Three rounds, each faster than the last.
+    of:
+      type: record
+      fields:
+        task: {type: text, max_cells: 30, desc: The task of this round.}
+        part_scores:
+          type: list
+          items: 8
+          of: {type: number, range: [0, 1]}
+          desc: How much changing each part should help, in the order of parts.
+        candidates:
+          type: list
+          items: 3
+          of: {type: list, min_items: 1, max_items: 2, of: {type: ref, to: parts}}
+          desc: Three candidate edits, each one or two parts.
+        candidate_scores: {type: list, items: 3, of: {type: number, range: [0, 1]}}
+        failing_candidate: {type: integer, range: [1, 3], desc: Which candidate fails (1-based).}
+        kept:
+          type: list
+          items: 4
+          desc: Changes Compose looked at; scores at or above keep_at are kept.
+          of:
+            type: record
+            fields:
+              part: {type: ref, to: parts}
+              score: {type: number, range: [0, 1]}
+              delta: {type: number, range: [-0.99, 0.99], desc: "Change in the run score, shown as +0.12."}
+        filter_scores: {type: list, items: 4, of: {type: number, range: [0, 1]}}
+        learned:
+          type: list
+          min_items: 0
+          max_items: 8
+          of: {type: ref, to: parts}
+          desc: Parts that go into the long-term harness this round.
+        lessons:
+          type: list
+          items: 2
+          of: {type: integer, range: [0, 999]}
+          desc: Lesson counter before and after this round.
+        speed: {type: number, range: [0.1, 99], required: false, desc: "How many times faster the run of this round is than the run of round 1, shown in the status line as 1.4x. Leave out to show --. The animation itself speeds up the same way in every project."}

@@ -1,0 +1,7 @@
+# Photo preparation adds local detection and segmentation to the light install.
+-r requirements.txt
+opencv-python-headless==5.0.0.93
+torch==2.14.1
+torchvision==0.29.1
+transformers==5.20.2
+huggingface-hub==2.2.0

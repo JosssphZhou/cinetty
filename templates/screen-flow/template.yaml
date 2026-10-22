@@ -1,0 +1,116 @@
+id: screen-flow
+version: 1
+title: Phone use (landscape board)
+purpose: An agent operates a phone. It reads the screen with OCR, a decision model picks the target, a pixel-only fallback finds what OCR missed, and two devices capture and tap.
+kind: video
+terminal: 94 x 37 cells, 30 fps
+duration: 26 s
+preview: {still: preview/still.png, clip: preview/clip.mp4}
+example: {zh: examples/phone-use/project.zh.yaml, en: examples/phone-use/project.en.yaml}
+notes: >
+  Fixed layout: the main box on top; OCR, the decision model and the vision fallback in the
+  middle row; two device cards below (the first captures the screen, the second taps); a
+  confirm box; a two-line execution log and a status bar. The decision box shows the newest
+  decision with up to three candidates. A dispatch to the vision fallback lights it and types
+  out the spot it found; the next dispatch to the second device takes that spot over. Events
+  start one at a time: each waits until the packet of the one before has arrived (about one
+  second), so give them at least a second apart. The board leaves room on the right of a
+  landscape video for a recording of the phone screen; the preview has one placed there in
+  a video editor. cinetty draws only the board.
+
+fields:
+  title: {type: text, max_cells: 44, desc: "Rainbow title. Letters are drawn one cell apart and words two apart when that fits in 90 cells."}
+  legend:
+    type: record
+    desc: The colour legend under the title. All four together must fit one 90-cell line.
+    fields:
+      main: {type: text, max_cells: 18, desc: "Orange, the main box."}
+      ocr: {type: text, max_cells: 18, desc: "Pink, OCR."}
+      decision: {type: text, max_cells: 18, desc: "Purple, the decision model."}
+      action: {type: text, max_cells: 18, desc: "Green, the devices acting."}
+  main:
+    type: record
+    desc: The main box on top (the agent).
+    fields:
+      name: {type: text, max_cells: 26}
+      detail: {type: text, max_cells: 26}
+  ocr:
+    type: record
+    desc: The OCR box on the left of the middle row.
+    fields:
+      name: {type: text, max_cells: 15}
+      detail: {type: text, max_cells: 15}
+      busy: {type: text, max_cells: 15, desc: Shown while it reads a screen.}
+      idle: {type: text, max_cells: 15}
+      unit: {type: text, max_cells: 10, desc: "Word after the number of text boxes, for example 'texts'. '<boxes> <unit>' must fit 15 cells."}
+      time_label: {type: text, max_cells: 6, required: false, desc: "Optional word before the time; '<time_label> <ms> ms' must fit 15 cells."}
+  decision:
+    type: record
+    desc: The decision box in the middle.
+    fields:
+      title: {type: text, max_cells: 46}
+      waiting: {type: text, max_cells: 46, desc: Shown before the first decision.}
+      act: {type: text, max_cells: 10, desc: Outcome word when it acts on its answer.}
+      handoff: {type: text, max_cells: 10, desc: Outcome word when it hands over to the vision fallback.}
+      candidates_title: {type: text, max_cells: 44, desc: Heading above the candidates.}
+      picked: {type: text, max_cells: 10, desc: Mark on the picked candidate.}
+      no_text: {type: text, max_cells: 10, desc: Mark on a picked candidate without a confidence (OCR found no text there).}
+  vision:
+    type: record
+    desc: The vision fallback box on the right of the middle row.
+    fields:
+      name: {type: text, max_cells: 15}
+      detail: {type: text, max_cells: 15}
+      busy: {type: text, max_cells: 15}
+      idle: {type: text, max_cells: 15}
+  devices:
+    type: list
+    items: 2
+    desc: The two device cards. Events dispatch to them by id; the second one takes over from the vision fallback.
+    of:
+      type: record
+      fields:
+        id: {type: text, max_cells: 12, allowed_chars: "abcdefghijklmnopqrstuvwxyz0123456789_-", desc: Lower-case id used by events (not 'vision').}
+        name: {type: text, max_cells: 41}
+        detail: {type: text, max_cells: 41}
+        log_name: {type: text, max_cells: 20, desc: "Name after the arrow in log lines, for example 'Tap -> ESP32'."}
+  device_states:
+    type: record
+    desc: State line of a device card.
+    fields:
+      running: {type: text, max_cells: 39}
+      done: {type: text, max_cells: 13, desc: Also shown in the vision box after a check mark.}
+      idle: {type: text, max_cells: 39}
+  confirm: {type: text, max_cells: 26, desc: The box the results come back to; it lights after the final done event.}
+  log_title: {type: text, max_cells: 60}
+  log_tags:
+    type: record
+    desc: Tags in front of log lines. The widest one sets the tag column.
+    fields:
+      ocr: {type: text, max_cells: 8}
+      decision: {type: text, max_cells: 8}
+      action: {type: text, max_cells: 8}
+      done: {type: text, max_cells: 8}
+      vision: {type: text, max_cells: 8}
+  status:
+    type: list
+    min_items: 1
+    max_items: 4
+    desc: Fixed facts in the status bar, left to right. All of them must fit one 92-cell line.
+    of:
+      type: record
+      fields:
+        key: {type: text, max_cells: 16}
+        value: {type: text, max_cells: 16}
+  clock_start: {type: text, max_cells: 12, allowed_chars: "0123456789:.", desc: "Time of day the log clock starts at, HH:MM:SS (seconds may have a fraction). Each log line shows this plus its event time."}
+
+events:
+  desc: >
+    Timed events (inline list, or the path of a .jsonl file with one event per line). Times in
+    seconds from the start, never decreasing. An event starts at its time or when the packet
+    before it has arrived, whichever is later.
+  types:
+    dispatch: {to: "a device id, or vision", text: "the task, shown on the card (41 cells) or typed out in the vision box (15 cells)"}
+    done: {text: "the text of an earlier dispatch", final: "optional, true on the last one: the confirm box lights"}
+    ocr: {boxes: "number of text boxes found", ms: "time taken in milliseconds"}
+    decision: {question: text, answer: text, confidence: "0 to 1", outcome: "act or handoff", candidates: "optional, up to 3 of {text, confidence (0 to 1, or null when OCR found no text), pick: true}"}

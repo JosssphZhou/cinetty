@@ -1,0 +1,62 @@
+# Phone use, Chinese. The app and the dishes are made up.
+template: screen-flow
+template_version: 1
+name: phone-use-zh
+fields:
+  title: GROKI PHONE USE WORKFLOW
+  legend: {main: Groki, ocr: OCR, decision: Decision Model, action: Action}
+  main: {name: Groki, detail: ESP32 模拟鼠标}
+  ocr: {name: OCR, detail: On-device, busy: 正在识别, idle: 就绪, unit: 处文本}
+  decision:
+    title: DECISION MODEL：动作决策
+    waiting: 等待画面
+    act: 执行点击
+    handoff: 移交
+    candidates_title: 候选目标　置信度
+    picked: 已选定
+    no_text: 视觉介入
+  vision: {name: Vision Fallback, detail: 纯视觉推理, busy: 运行中, idle: 就绪}
+  devices:
+    - {id: iphone, name: iPhone, detail: AirPlay mirror, log_name: AirPlay}
+    - {id: esp32, name: ESP32, detail: Bluetooth HID, log_name: ESP32}
+  device_states: {running: 运行中, done: 已完成, idle: 就绪}
+  confirm: 确认结果
+  log_title: 执行日志
+  log_tags: {ocr: 识别, decision: 决策, action: 执行, done: 完成, vision: 视觉}
+  status:
+    - {key: decision, value: 0.52 s}
+    - {key: ocr, value: 243.7 ms}
+    - {key: esp32, value: bluetooth}
+  clock_start: "14:00:00"
+events:
+  - {t: 1.0, type: dispatch, to: iphone, text: 采集画面}
+  - {t: 2.0, type: done, text: 采集画面}
+  - {t: 3.0, type: ocr, boxes: 22, ms: 270.1}
+  - t: 5.4
+    type: decision
+    question: 确定点击目标
+    answer: "#3 快送外卖"
+    confidence: 0.5
+    outcome: act
+    candidates:
+      - {text: "#3 快送外卖", confidence: 0.5, pick: true}
+      - {text: "#4 外卖", confidence: 0.5}
+      - {text: "#7 快送", confidence: 1.0}
+  - {t: 7.0, type: dispatch, to: esp32, text: "点击 #3 快送外卖"}
+  - {t: 9.0, type: done, text: "点击 #3 快送外卖"}
+  - {t: 10.4, type: dispatch, to: iphone, text: 采集画面}
+  - {t: 11.4, type: done, text: 采集画面}
+  - {t: 12.4, type: ocr, boxes: 16, ms: 283.5}
+  - t: 14.8
+    type: decision
+    question: 规格已选好
+    answer: 无法定位 → Vision Fallback
+    confidence: 0.58
+    outcome: handoff
+    candidates:
+      - {text: 加入购物车：未检出文本, confidence: null, pick: true}
+      - {text: "#14 选规格", confidence: 0.5}
+      - {text: "#5 规格", confidence: 0.5}
+  - {t: 16.8, type: dispatch, to: vision, text: 找到 加入购物车}
+  - {t: 19.0, type: dispatch, to: esp32, text: 点击 加入购物车}
+  - {t: 21.0, type: done, text: 点击 加入购物车, final: true}
