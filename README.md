@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <h1 align="center">cinetty</h1>
+  <p align="center"><img src="docs/logo.png" alt="cinetty" width="476"></p>
   <p align="center"><b>Cinematic architecture animations that play directly in your terminal.</b></p>
 </p>
 
