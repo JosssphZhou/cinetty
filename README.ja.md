@@ -36,38 +36,35 @@
 
 ## テンプレートギャラリー
 
-<table>
-<tr>
-<td align="center" valign="top">
-  <a href="templates/loop-landscape/"><img src="templates/loop-landscape/preview/clip.gif" width="420" alt="loop-landscape"></a><br>
+<p align="center">
+  <a href="templates/loop-landscape/"><img src="templates/loop-landscape/preview/clip.gif" width="720" alt="loop-landscape"></a><br>
   <a href="templates/loop-landscape/"><code>loop-landscape</code></a>
-</td>
-<td align="center" valign="top">
-  <a href="templates/circuit-flow/"><img src="templates/circuit-flow/preview/clip.gif" width="420" alt="circuit-flow"></a><br>
+</p>
+
+<p align="center">
+  <a href="templates/circuit-flow/"><img src="templates/circuit-flow/preview/clip.gif" width="720" alt="circuit-flow"></a><br>
   <a href="templates/circuit-flow/"><code>circuit-flow</code></a>
-</td>
-</tr>
-<tr>
-<td align="center" valign="top" colspan="2">
-  <a href="templates/screen-flow/"><img src="templates/screen-flow/preview/clip.gif" width="420" alt="screen-flow"></a><br>
+</p>
+
+<p align="center">
+  <a href="templates/screen-flow/"><img src="templates/screen-flow/preview/clip.gif" width="720" alt="screen-flow"></a><br>
   <a href="templates/screen-flow/"><code>screen-flow</code></a>
-</td>
-</tr>
-<tr>
-<td align="center" valign="top">
-  <a href="templates/loop-portrait/"><img src="templates/loop-portrait/preview/clip.gif" width="270" alt="loop-portrait"></a><br>
+</p>
+
+<p align="center">
+  <a href="templates/loop-portrait/"><img src="templates/loop-portrait/preview/clip.gif" width="360" alt="loop-portrait"></a><br>
   <a href="templates/loop-portrait/"><code>loop-portrait</code></a>
-</td>
-<td align="center" valign="top">
-  <a href="templates/photo-loop/"><img src="templates/photo-loop/preview/clip.gif" width="270" alt="photo-loop"></a><br>
+</p>
+
+<p align="center">
+  <a href="templates/photo-loop/"><img src="templates/photo-loop/preview/clip.gif" width="360" alt="photo-loop"></a><br>
   <a href="templates/photo-loop/"><code>photo-loop</code></a>
-</td>
-<td align="center" valign="top">
-  <a href="templates/pipeline/"><img src="templates/pipeline/preview/clip.gif" width="270" alt="pipeline"></a><br>
+</p>
+
+<p align="center">
+  <a href="templates/pipeline/"><img src="templates/pipeline/preview/clip.gif" width="360" alt="pipeline"></a><br>
   <a href="templates/pipeline/"><code>pipeline</code></a>
-</td>
-</tr>
-</table>
+</p>
 
 各プレビューはテンプレートの実際の動作を示しています。カードをクリックすると、スキーマ定義、シーン構成、サンプルプロジェクトを確認できます。
 
